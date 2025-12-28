@@ -64,6 +64,12 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
     columnResizeMode,
     enableSortingRemoval: true,
     enableMultiSort: false, // Phase 1では単一カラムソートのみ
+    // カラムのデフォルトサイズを設定
+    defaultColumn: {
+      size: 200,
+      minSize: 50,
+      maxSize: 500,
+    },
   })
 
   // 枠線の色（テーマに応じて変更）
@@ -84,7 +90,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
       <table
         className="advanced-dataframe-table"
         style={{
-          width: table.getTotalSize(),
+          width: '100%',
           borderCollapse: 'collapse',
         }}
       >
