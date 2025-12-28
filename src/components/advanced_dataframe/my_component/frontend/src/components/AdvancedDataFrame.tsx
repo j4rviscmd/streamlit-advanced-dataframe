@@ -120,14 +120,10 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                       header.column.columnDef.header,
                       header.getContext()
                     )}
-                    {/* ソートインジケーター */}
-                    {header.column.getCanSort() && (
+                    {/* ソートインジケーター（ソート中のみ表示） */}
+                    {header.column.getCanSort() && header.column.getIsSorted() && (
                       <span className="text-xs opacity-60">
-                        {header.column.getIsSorted() === 'asc'
-                          ? '↑'
-                          : header.column.getIsSorted() === 'desc'
-                            ? '↓'
-                            : '⇅'}
+                        {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
                       </span>
                     )}
                   </div>
