@@ -121,7 +121,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                   <th
                     key={header.id}
                     className={cn(
-                      'sticky top-0 z-10 px-3 py-2 text-left text-sm font-semibold select-none',
+                      'sticky top-0 z-10 px-3 py-2 text-left text-sm select-none opacity-70',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default'
