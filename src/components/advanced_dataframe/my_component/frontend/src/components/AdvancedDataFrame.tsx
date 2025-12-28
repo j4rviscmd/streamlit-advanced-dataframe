@@ -66,6 +66,9 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
     enableMultiSort: false, // Phase 1では単一カラムソートのみ
   })
 
+  // 枠線の色（テーマに応じて変更）
+  const borderColor = isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
+
   return (
     <div
       className="advanced-dataframe-container"
@@ -74,6 +77,8 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
         overflow: 'auto',
         fontFamily: theme.font,
         color: textColor,
+        border: `1px solid ${borderColor}`,
+        borderRadius: '4px',
       }}
     >
       <table
@@ -93,7 +98,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     width: header.getSize(),
                     position: 'relative',
                     backgroundColor: secondaryBackgroundColor,
-                    borderBottom: `1px solid ${isDark ? '#444' : '#ddd'}`,
+                    border: `1px solid ${borderColor}`,
                     padding: '8px 12px',
                     textAlign: 'left',
                     fontWeight: 600,
@@ -168,12 +173,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.id}
-              style={{
-                borderBottom: `1px solid ${isDark ? '#333' : '#eee'}`,
-              }}
-            >
+            <tr key={row.id}>
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
@@ -184,6 +184,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
+                    border: `1px solid ${borderColor}`,
                   }}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
