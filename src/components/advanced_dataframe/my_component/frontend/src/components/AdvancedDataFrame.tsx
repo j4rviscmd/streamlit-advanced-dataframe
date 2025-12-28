@@ -80,7 +80,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
     <div
       className="overflow-auto rounded-md border"
       style={{
-        height: height ? `${height}px` : 'auto',
+        maxHeight: height ? `${height}px` : 'none',
         fontFamily: theme.font,
         color: textColor,
         borderColor: borderColor,
