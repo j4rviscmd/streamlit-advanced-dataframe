@@ -90,20 +90,31 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className={cn(
-                    'relative px-3 py-2 text-left text-sm font-semibold select-none',
-                    header.column.getCanSort() ? 'cursor-pointer' : 'cursor-default'
-                  )}
-                  style={{
-                    width: header.getSize(),
-                    backgroundColor: secondaryBackgroundColor,
-                    border: `1px solid ${borderColor}`,
-                  }}
-                  onClick={header.column.getToggleSortingHandler()}
-                >
+              {headerGroup.headers.map((header, headerIndex) => {
+                const isFirstColumn = headerIndex === 0
+                const isLastColumn = headerIndex === headerGroup.headers.length - 1
+
+                return (
+                  <th
+                    key={header.id}
+                    className={cn(
+                      'relative px-3 py-2 text-left text-sm font-semibold select-none',
+                      header.column.getCanSort()
+                        ? 'cursor-pointer'
+                        : 'cursor-default'
+                    )}
+                    style={{
+                      width: header.getSize(),
+                      backgroundColor: secondaryBackgroundColor,
+                      borderTop: 'none',
+                      borderLeft: isFirstColumn ? 'none' : `1px solid ${borderColor}`,
+                      borderRight: isLastColumn
+                        ? 'none'
+                        : `1px solid ${borderColor}`,
+                      borderBottom: `1px solid ${borderColor}`,
+                    }}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
                   <div className="flex items-center gap-1">
                     {flexRender(
                       header.column.columnDef.header,
@@ -147,28 +158,50 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                       />
                     </div>
                   )}
-                </th>
-              ))}
+                  </th>
+                )
+              })}
             </tr>
           ))}
         </thead>
         <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <td
-                  key={cell.id}
-                  className="px-3 py-2 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
-                  style={{
-                    width: cell.column.getSize(),
-                    border: `1px solid ${borderColor}`,
-                  }}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {table.getRowModel().rows.map((row, rowIndex) => {
+            const isLastRow = rowIndex === table.getRowModel().rows.length - 1
+
+            return (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell, cellIndex) => {
+                  const isFirstColumn = cellIndex === 0
+                  const isLastColumn = cellIndex === row.getVisibleCells().length - 1
+
+                  return (
+                    <td
+                      key={cell.id}
+                      className="px-3 py-2 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                      style={{
+                        width: cell.column.getSize(),
+                        borderTop: `1px solid ${borderColor}`,
+                        borderLeft: isFirstColumn
+                          ? 'none'
+                          : `1px solid ${borderColor}`,
+                        borderRight: isLastColumn
+                          ? 'none'
+                          : `1px solid ${borderColor}`,
+                        borderBottom: isLastRow
+                          ? 'none'
+                          : `1px solid ${borderColor}`,
+                      }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
 
