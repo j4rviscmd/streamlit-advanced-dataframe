@@ -78,11 +78,12 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
 
   return (
     <div
-      className="overflow-auto rounded-md"
+      className="overflow-auto rounded-md border"
       style={{
         height: height ? `${height}px` : 'auto',
         fontFamily: theme.font,
         color: textColor,
+        borderColor: borderColor,
       }}
     >
       <table className="w-full border-collapse">
