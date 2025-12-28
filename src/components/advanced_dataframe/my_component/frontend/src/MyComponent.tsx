@@ -1,8 +1,8 @@
+import { AdvancedDataFrame } from '@/components/AdvancedDataFrame'
+import { StreamlitProps } from '@/types/table'
 import { useEffect } from 'react'
 import { Streamlit } from 'streamlit-component-lib'
 import { useRenderData } from 'streamlit-component-lib-react-hooks'
-import { AdvancedDataFrame } from '@/components/AdvancedDataFrame'
-import { StreamlitProps } from '@/types/table'
 
 /**
  * MyComponent - Streamlitとの連携エントリーポイント
