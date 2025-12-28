@@ -122,7 +122,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                   <th
                     key={header.id}
                     className={cn(
-                      'sticky top-0 z-10 px-3 py-2 text-left text-sm font-light opacity-70',
+                      'sticky top-0 z-10 px-3 py-2 text-left text-sm font-light',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default',
@@ -141,7 +141,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     }}
                     onClick={header.column.getToggleSortingHandler()}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 opacity-70">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext(),
