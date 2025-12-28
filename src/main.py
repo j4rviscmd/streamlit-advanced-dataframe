@@ -36,7 +36,7 @@ def main():
     st.dataframe(df_basic, height=200)
 
     st.write("**advanced_dataframe（Phase 1版）:**")
-    advanced_dataframe(data=df_basic, height=350, key="basic_table")
+    advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
     st.header("2. 多数のカラムを持つテーブル")
