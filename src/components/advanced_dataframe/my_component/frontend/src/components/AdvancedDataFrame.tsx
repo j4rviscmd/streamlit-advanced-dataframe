@@ -9,20 +9,20 @@
  * - Streamlitテーマ対応
  */
 
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  SortingState,
-  ColumnResizeMode,
-  ColumnDef,
-} from '@tanstack/react-table'
-import { useState, useMemo } from 'react'
-import { RowData, StreamlitProps } from '@/types/table'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
 import { cn } from '@/lib/utils'
+import { RowData, StreamlitProps } from '@/types/table'
+import {
+  ColumnDef,
+  ColumnResizeMode,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
 
 /**
  * AdvancedDataFrameコンポーネント
@@ -70,9 +70,9 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
             // その他の型はデフォルトの比較
             return a < b ? -1 : a > b ? 1 : 0
           },
-        })
+        }),
       ),
-    [columns, columnHelper]
+    [columns, columnHelper],
   )
 
   // TanStack Tableインスタンス作成
@@ -115,22 +115,25 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header, headerIndex) => {
                 const isFirstColumn = headerIndex === 0
-                const isLastColumn = headerIndex === headerGroup.headers.length - 1
+                const isLastColumn =
+                  headerIndex === headerGroup.headers.length - 1
 
                 return (
                   <th
                     key={header.id}
                     className={cn(
-                      'sticky top-0 z-10 px-3 py-2 text-left text-sm font-light select-none opacity-50',
+                      'sticky top-0 z-10 px-3 py-2 text-left text-sm font-light opacity-70 select-none',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
-                        : 'cursor-default'
+                        : 'cursor-default',
                     )}
                     style={{
                       width: header.getSize(),
                       backgroundColor: secondaryBackgroundColor,
                       borderTop: 'none',
-                      borderLeft: isFirstColumn ? 'none' : `1px solid ${borderColor}`,
+                      borderLeft: isFirstColumn
+                        ? 'none'
+                        : `1px solid ${borderColor}`,
                       borderRight: isLastColumn
                         ? 'none'
                         : `1px solid ${borderColor}`,
@@ -138,45 +141,46 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     }}
                     onClick={header.column.getToggleSortingHandler()}
                   >
-                  <div className="flex items-center gap-1">
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                    {/* ソートインジケーター（ソート中のみ表示） */}
-                    {header.column.getCanSort() && header.column.getIsSorted() && (
-                      <span className="text-xs opacity-60">
-                        {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* カラムリサイズハンドル */}
-                  {header.column.getCanResize() && (
-                    <div
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className="absolute right-0 top-0 h-full w-[5px] cursor-col-resize select-none touch-none transition-opacity duration-200"
-                      style={{
-                        opacity: header.column.getIsResizing() ? 1 : 0,
-                      }}
-                      onMouseEnter={(e) => {
-                        ;(e.target as HTMLElement).style.opacity = '0.3'
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!header.column.getIsResizing()) {
-                          ;(e.target as HTMLElement).style.opacity = '0'
-                        }
-                      }}
-                    >
-                      <div
-                        className="h-full w-full"
-                        style={{
-                          backgroundColor: theme.primaryColor,
-                        }}
-                      />
+                    <div className="flex items-center gap-1">
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                      {/* ソートインジケーター（ソート中のみ表示） */}
+                      {header.column.getCanSort() &&
+                        header.column.getIsSorted() && (
+                          <span className="text-xs opacity-60">
+                            {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
                     </div>
-                  )}
+
+                    {/* カラムリサイズハンドル */}
+                    {header.column.getCanResize() && (
+                      <div
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className="absolute top-0 right-0 h-full w-[5px] cursor-col-resize touch-none transition-opacity duration-200 select-none"
+                        style={{
+                          opacity: header.column.getIsResizing() ? 1 : 0,
+                        }}
+                        onMouseEnter={(e) => {
+                          ;(e.target as HTMLElement).style.opacity = '0.3'
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!header.column.getIsResizing()) {
+                            ;(e.target as HTMLElement).style.opacity = '0'
+                          }
+                        }}
+                      >
+                        <div
+                          className="h-full w-full"
+                          style={{
+                            backgroundColor: theme.primaryColor,
+                          }}
+                        />
+                      </div>
+                    )}
                   </th>
                 )
               })}
@@ -191,12 +195,13 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell, cellIndex) => {
                   const isFirstColumn = cellIndex === 0
-                  const isLastColumn = cellIndex === row.getVisibleCells().length - 1
+                  const isLastColumn =
+                    cellIndex === row.getVisibleCells().length - 1
 
                   return (
                     <td
                       key={cell.id}
-                      className="px-3 py-2 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+                      className="overflow-hidden px-3 py-2 text-sm text-ellipsis whitespace-nowrap"
                       style={{
                         width: cell.column.getSize(),
                         borderTop: `1px solid ${borderColor}`,
@@ -213,7 +218,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   )
