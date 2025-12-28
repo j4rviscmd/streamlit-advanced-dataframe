@@ -22,6 +22,7 @@ import {
 import { useState, useMemo } from 'react'
 import { RowData, StreamlitProps } from '@/types/table'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
+import { cn } from '@/lib/utils'
 
 /**
  * AdvancedDataFrameコンポーネント
@@ -77,56 +78,39 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
 
   return (
     <div
-      className="advanced-dataframe-container"
+      className="overflow-auto rounded-md"
       style={{
         height: height ? `${height}px` : 'auto',
-        overflow: 'auto',
         fontFamily: theme.font,
         color: textColor,
-        borderRadius: '6px',
       }}
     >
-      <table
-        className="advanced-dataframe-table"
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-        }}
-      >
+      <table className="w-full border-collapse">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
+                  className={cn(
+                    'relative px-3 py-2 text-left text-sm font-semibold select-none',
+                    header.column.getCanSort() ? 'cursor-pointer' : 'cursor-default'
+                  )}
                   style={{
                     width: header.getSize(),
-                    position: 'relative',
                     backgroundColor: secondaryBackgroundColor,
                     border: `1px solid ${borderColor}`,
-                    padding: '8px 12px',
-                    textAlign: 'left',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: header.column.getCanSort() ? 'pointer' : 'default',
-                    userSelect: 'none',
                   }}
                   onClick={header.column.getToggleSortingHandler()}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
+                  <div className="flex items-center gap-1">
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
                     )}
                     {/* ソートインジケーター */}
                     {header.column.getCanSort() && (
-                      <span style={{ fontSize: '12px', opacity: 0.6 }}>
+                      <span className="text-xs opacity-60">
                         {header.column.getIsSorted() === 'asc'
                           ? '↑'
                           : header.column.getIsSorted() === 'desc'
@@ -141,17 +125,9 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     <div
                       onMouseDown={header.getResizeHandler()}
                       onTouchStart={header.getResizeHandler()}
+                      className="absolute right-0 top-0 h-full w-[5px] cursor-col-resize select-none touch-none transition-opacity duration-200"
                       style={{
-                        position: 'absolute',
-                        right: 0,
-                        top: 0,
-                        height: '100%',
-                        width: '5px',
-                        cursor: 'col-resize',
-                        userSelect: 'none',
-                        touchAction: 'none',
                         opacity: header.column.getIsResizing() ? 1 : 0,
-                        transition: 'opacity 0.2s',
                       }}
                       onMouseEnter={(e) => {
                         ;(e.target as HTMLElement).style.opacity = '0.3'
@@ -163,9 +139,8 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                       }}
                     >
                       <div
+                        className="h-full w-full"
                         style={{
-                          height: '100%',
-                          width: '100%',
                           backgroundColor: theme.primaryColor,
                         }}
                       />
@@ -182,13 +157,9 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
+                  className="px-3 py-2 text-sm whitespace-nowrap overflow-hidden text-ellipsis"
                   style={{
                     width: cell.column.getSize(),
-                    padding: '8px 12px',
-                    fontSize: '14px',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
                     border: `1px solid ${borderColor}`,
                   }}
                 >
@@ -203,11 +174,9 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
       {/* データが空の場合の表示 */}
       {data.length === 0 && (
         <div
+          className="p-6 text-center text-sm"
           style={{
-            padding: '24px',
-            textAlign: 'center',
             color: isDark ? '#888' : '#999',
-            fontSize: '14px',
           }}
         >
           データがありません
