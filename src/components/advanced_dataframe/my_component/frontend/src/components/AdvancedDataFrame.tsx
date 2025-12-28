@@ -47,6 +47,29 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
           header: col.header,
           enableSorting: col.enableSorting ?? true,
           enableResizing: col.enableResizing ?? true,
+          // 日本語対応のカスタムソート関数
+          sortingFn: (rowA, rowB, columnId) => {
+            const a = rowA.getValue(columnId)
+            const b = rowB.getValue(columnId)
+
+            // nullやundefinedの処理
+            if (a == null && b == null) return 0
+            if (a == null) return 1
+            if (b == null) return -1
+
+            // 文字列の場合は日本語対応のlocaleCompareを使用
+            if (typeof a === 'string' && typeof b === 'string') {
+              return a.localeCompare(b, 'ja', { sensitivity: 'base' })
+            }
+
+            // 数値の場合は通常の比較
+            if (typeof a === 'number' && typeof b === 'number') {
+              return a - b
+            }
+
+            // その他の型はデフォルトの比較
+            return a < b ? -1 : a > b ? 1 : 0
+          },
         })
       ),
     [columns, columnHelper]
