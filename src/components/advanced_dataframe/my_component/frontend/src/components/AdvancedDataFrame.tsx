@@ -83,8 +83,6 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
         overflow: 'auto',
         fontFamily: theme.font,
         color: textColor,
-        border: `1px solid ${borderColor}`,
-        borderRadius: '4px',
       }}
     >
       <table
