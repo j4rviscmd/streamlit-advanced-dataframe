@@ -17,19 +17,26 @@ export function FilterStatus({
   filteredRows,
   isFiltered,
 }: FilterStatusProps) {
-  // フィルタが適用されていない場合は何も表示しない
-  if (!isFiltered) {
-    return null
-  }
-
   return (
     <div className="flex items-center justify-between px-1 py-2">
       <p className="text-sm text-muted-foreground">
-        全{totalRows.toLocaleString()}件中
-        <span className="font-medium text-foreground mx-1">
-          {filteredRows.toLocaleString()}件
-        </span>
-        を表示
+        {isFiltered ? (
+          <>
+            全{totalRows.toLocaleString()}件中
+            <span className="font-medium text-foreground mx-1">
+              {filteredRows.toLocaleString()}件
+            </span>
+            を表示
+          </>
+        ) : (
+          <>
+            全
+            <span className="font-medium text-foreground mx-1">
+              {totalRows.toLocaleString()}件
+            </span>
+            を表示
+          </>
+        )}
       </p>
     </div>
   )

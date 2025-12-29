@@ -618,19 +618,20 @@ export function AdvancedDataFrame({
   const isFiltered = columnFilters.length > 0
 
   return (
-    <div
-      ref={tableRef}
-      className={cn(
-        'overflow-auto rounded-md border',
-        fullWidth ? 'w-full' : 'w-fit',
-      )}
-      style={{
-        maxHeight: height ? `${height}px` : 'none',
-        fontFamily: theme.font,
-        color: textColor,
-        borderColor: borderColor,
-      }}
-    >
+    <>
+      <div
+        ref={tableRef}
+        className={cn(
+          'overflow-auto rounded-md border',
+          fullWidth ? 'w-full' : 'w-fit',
+        )}
+        style={{
+          maxHeight: height ? `${height}px` : 'none',
+          fontFamily: theme.font,
+          color: textColor,
+          borderColor: borderColor,
+        }}
+      >
       <table
         className={cn(fullWidth ? 'w-full' : 'w-fit')}
         style={{ borderCollapse: 'separate', borderSpacing: 0 }}
@@ -784,10 +785,9 @@ export function AdvancedDataFrame({
                           ? 'none'
                           : `1px solid ${borderColor}`,
                         borderRight: 'none',
-                        borderBottom:
-                          isLastRow && (!showFilterRecords || !isFiltered)
-                            ? 'none'
-                            : `1px solid ${borderColor}`,
+                        borderBottom: isLastRow
+                          ? 'none'
+                          : `1px solid ${borderColor}`,
                         backgroundColor: isSelectionColumn
                           ? isRowSelected
                             ? isDark
@@ -916,15 +916,24 @@ export function AdvancedDataFrame({
           データがありません
         </div>
       )}
+      </div>
 
       {/* フィルタレコード数表示 */}
       {showFilterRecords && (
-        <FilterStatus
-          totalRows={totalRows}
-          filteredRows={filteredRows}
-          isFiltered={isFiltered}
-        />
+        <div
+          className={cn(fullWidth ? 'w-full' : 'w-fit')}
+          style={{
+            fontFamily: theme.font,
+            color: textColor,
+          }}
+        >
+          <FilterStatus
+            totalRows={totalRows}
+            filteredRows={filteredRows}
+            isFiltered={isFiltered}
+          />
+        </div>
       )}
-    </div>
+    </>
   )
 }
