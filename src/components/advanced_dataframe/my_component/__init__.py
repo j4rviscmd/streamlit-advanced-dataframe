@@ -30,6 +30,7 @@ def advanced_dataframe(
     enable_filters: list[str] | None = None,
     show_filter_records: bool = False,
     visible_columns: list[str] | None = None,
+    column_groups: list[dict[str, Any]] | None = None,
     key: str | None = None,
 ) -> Any:
     """
@@ -74,6 +75,11 @@ def advanced_dataframe(
     visible_columns : list[str] or None, optional
         表示するカラム名のリスト、デフォルトはNone（全カラム表示）
         指定されたカラムのみが表示されます。カラムの表示順序は元のDataFrameの順序に従います
+    column_groups : list[dict] or None, optional
+        カラムグループ設定（ヘッダ結合）、デフォルトはNone（グループ化なし）
+        各要素は {'header': 'グループ名', 'columns': ['カラム1', 'カラム2']} の形式
+        'id'キーは省略可能（省略時は'header'を使用）
+        グループに属さないカラムは通常のヘッダとして表示されます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -120,6 +126,17 @@ def advanced_dataframe(
     ...     enable_filters=["name", "age", "city"],
     ...     key="filterable_table"
     ... )
+    >>
+    >>> # カラムグループ（ヘッダ結合）
+    >>> advanced_dataframe(
+    ...     data=df,
+    ...     height=400,
+    ...     column_groups=[
+    ...         {"header": "個人情報", "columns": ["name", "age"]},
+    ...         {"header": "所在地", "columns": ["city"]}
+    ...     ],
+    ...     key="grouped_table"
+    ... )
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
     data_json: list[dict[Hashable, Any]] = data.to_dict("records")
@@ -152,6 +169,7 @@ def advanced_dataframe(
         enable_row_selection=enable_row_selection,
         show_filter_records=show_filter_records,
         visible_columns=visible_columns,
+        column_groups=column_groups,
         key=key,
         default=None,
     )

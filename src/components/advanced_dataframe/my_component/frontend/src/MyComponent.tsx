@@ -21,6 +21,7 @@ function MyComponent() {
   const enableRowSelection = renderData.args['enable_row_selection']
   const showFilterRecords = renderData.args['show_filter_records']
   const visibleColumns = renderData.args['visible_columns']
+  const columnGroups = renderData.args['column_groups']
 
   // StreamlitPropsに変換
   const props: StreamlitProps = {
@@ -31,6 +32,7 @@ function MyComponent() {
     enableRowSelection,
     showFilterRecords,
     visibleColumns,
+    columnGroups,
   }
 
   // コンポーネントのマウント時にStreamlitにフレームの高さを通知

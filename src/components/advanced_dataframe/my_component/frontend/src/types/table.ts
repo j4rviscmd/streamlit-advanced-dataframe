@@ -58,6 +58,19 @@ export type FilterValue =
   | [Date | undefined, Date | undefined] // date range filter [start, end]
 
 /**
+ * カラムグループ（ヘッダ結合）
+ * Phase 3で追加
+ */
+export interface ColumnGroup {
+  /** グループID（省略時はheaderを使用） */
+  id?: string
+  /** グループのヘッダテキスト */
+  header: string
+  /** グループに属するカラムIDのリスト */
+  columns: string[]
+}
+
+/**
  * Streamlitから受け取るProps
  * 各フェーズで段階的に拡張される
  */
@@ -76,9 +89,10 @@ export interface StreamlitProps {
   showFilterRecords?: boolean
   /** 表示するカラム名のリスト（Phase 3で追加） */
   visibleColumns?: string[]
+  /** カラムグループ設定（ヘッダ結合）（Phase 3で追加） */
+  columnGroups?: ColumnGroup[]
 
-  // 以下、Phase 3以降で追加予定
-  // columnGroups?: ColumnGroup[]
+  // 以下、Phase 4以降で追加予定
   // expandable?: boolean
   // enableExport?: boolean
 }

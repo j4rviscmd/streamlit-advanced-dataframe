@@ -53,6 +53,7 @@ export function AdvancedDataFrame({
   enableRowSelection = false,
   showFilterRecords = false,
   visibleColumns,
+  columnGroups,
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
@@ -213,8 +214,9 @@ export function AdvancedDataFrame({
   // カラム定義をTanStack Table形式に変換
   const columnHelper = createColumnHelper<RowData>()
   const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(() => {
-    const dataColumns = columns.map((col) =>
-      columnHelper.accessor(col.id, {
+    // カラム定義を作成する共通関数
+    const createColumnDef = (col: ColumnConfig): ColumnDef<RowData, unknown> => {
+      return columnHelper.accessor(col.id, {
         id: col.id,
         header: col.header,
         enableSorting: col.enableSorting ?? true,
@@ -336,8 +338,43 @@ export function AdvancedDataFrame({
               return true
           }
         },
-      }),
-    )
+      })
+    }
+
+    // データカラムを作成
+    const dataColumns = columns.map(createColumnDef)
+
+    // カラムをグループ化（columnGroupsが指定されている場合）
+    let finalColumns: ColumnDef<RowData, unknown>[]
+
+    if (columnGroups && columnGroups.length > 0) {
+      // グループに属するカラムIDのセットを作成
+      const groupedColumnIds = new Set<string>()
+      columnGroups.forEach((group) => {
+        group.columns.forEach((colId) => groupedColumnIds.add(colId))
+      })
+
+      // グループオブジェクトを作成
+      const groupColumns: ColumnDef<RowData, unknown>[] = columnGroups.map(
+        (group) => ({
+          id: group.id ?? group.header, // idが未指定の場合はheaderを使用
+          header: group.header,
+          columns: dataColumns.filter((col) =>
+            group.columns.includes(col.id as string),
+          ),
+        }),
+      )
+
+      // グループに属さないカラム
+      const ungroupedColumns = dataColumns.filter(
+        (col) => !groupedColumnIds.has(col.id as string),
+      )
+
+      // グループカラムとグループに属さないカラムを結合
+      finalColumns = [...groupColumns, ...ungroupedColumns]
+    } else {
+      finalColumns = dataColumns
+    }
 
     // 行選択機能が有効な場合、チェックボックスカラムを先頭に追加
     if (enableRowSelection) {
@@ -361,16 +398,18 @@ export function AdvancedDataFrame({
           </div>
         ),
       }
-      return [selectionColumn, ...dataColumns]
+      return [selectionColumn, ...finalColumns]
     }
 
-    return dataColumns
+    return finalColumns
   }, [
     columns,
     columnHelper,
     numericColumns,
     enableRowSelection,
     selectedRowIndex,
+    columnGroups,
+    columnTypeMap,
   ])
 
   // TanStack Tableインスタンス作成
@@ -840,15 +879,19 @@ export function AdvancedDataFrame({
                 const isLastColumn =
                   headerIndex === headerGroup.headers.length - 1
 
+                // グループヘッダかどうか（子カラムを持つ場合）
+                const isGroupHeader = header.subHeaders && header.subHeaders.length > 0
                 const isHovered = hoveredHeaderId === header.id
                 const isNumeric = numericColumns.has(header.column.id)
                 const isSelectionColumn = header.column.id === '__selection__'
                 const isDragging = draggedColumnId === header.column.id
-                const isDraggable = !isSelectionColumn
+                // グループヘッダまたは選択カラムはドラッグ不可
+                const isDraggable = !isSelectionColumn && !isGroupHeader
 
                 return (
                   <th
                     key={header.id}
+                    colSpan={header.colSpan}
                     draggable={isDraggable}
                     onDragStart={
                       isDraggable
@@ -865,7 +908,8 @@ export function AdvancedDataFrame({
                     className={cn(
                       'sticky top-0 z-20 px-3 text-sm font-light transition-colors duration-150 select-none',
                       isNumeric ? 'text-right' : 'text-left',
-                      header.column.getCanSort()
+                      // グループヘッダはソート不可
+                      !isGroupHeader && header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default',
                     )}
@@ -884,7 +928,11 @@ export function AdvancedDataFrame({
                       borderBottom: `1px solid ${borderColor}`,
                       opacity: isDragging ? 0.5 : 1,
                     }}
-                    onClick={header.column.getToggleSortingHandler()}
+                    onClick={
+                      !isGroupHeader
+                        ? header.column.getToggleSortingHandler()
+                        : undefined
+                    }
                     onMouseEnter={() => setHoveredHeaderId(header.id)}
                     onMouseLeave={() => setHoveredHeaderId(null)}
                   >
@@ -894,16 +942,17 @@ export function AdvancedDataFrame({
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                        {/* ソートインジケーター（ソート中のみ表示） */}
-                        {header.column.getCanSort() &&
+                        {/* ソートインジケーター（グループヘッダ以外で、ソート中のみ表示） */}
+                        {!isGroupHeader &&
+                          header.column.getCanSort() &&
                           header.column.getIsSorted() && (
                             <span className="text-xs opacity-60">
                               {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
                             </span>
                           )}
                       </div>
-                      {/* フィルタアイコン（フィルタ有効カラムのみ、右端に配置） */}
-                      {columnTypeMap.has(header.column.id) && (
+                      {/* フィルタアイコン（グループヘッダ以外で、フィルタ有効カラムのみ、右端に配置） */}
+                      {!isGroupHeader && columnTypeMap.has(header.column.id) && (
                         <ColumnFilter
                           column={header.column}
                           columnType={columnTypeMap.get(header.column.id)!}
@@ -922,8 +971,8 @@ export function AdvancedDataFrame({
                       )}
                     </div>
 
-                    {/* カラムリサイズハンドル */}
-                    {header.column.getCanResize() && (
+                    {/* カラムリサイズハンドル（グループヘッダ以外） */}
+                    {!isGroupHeader && header.column.getCanResize() && (
                       <div
                         onMouseDown={header.getResizeHandler()}
                         onTouchStart={header.getResizeHandler()}
