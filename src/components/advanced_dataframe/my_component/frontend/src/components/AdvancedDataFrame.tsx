@@ -71,6 +71,13 @@ export function AdvancedDataFrame({
   // 展開状態管理（Phase 4で追加）
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
+  // 展開状態が変わった時にフレームの高さを再計算
+  useEffect(() => {
+    if (expandable) {
+      Streamlit.setFrameHeight()
+    }
+  }, [expanded, expandable])
+
   // 行選択状態管理（選択された行のインデックス、単一選択のみ）
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
 

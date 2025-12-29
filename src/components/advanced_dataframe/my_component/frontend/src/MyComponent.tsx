@@ -39,10 +39,10 @@ function MyComponent() {
     subRowsKey,
   }
 
-  // コンポーネントのマウント時にStreamlitにフレームの高さを通知
+  // データやpropsが変わった時にStreamlitにフレームの高さを通知
   useEffect(() => {
     Streamlit.setFrameHeight()
-  }, [])
+  }, [data, columns, height, expandable, showFilterRecords])
 
   // Streamlitテーマに応じて.darkクラスを適用（shadcn/ui用）
   useEffect(() => {
