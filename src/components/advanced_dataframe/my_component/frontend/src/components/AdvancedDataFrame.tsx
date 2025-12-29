@@ -72,9 +72,12 @@ export function AdvancedDataFrame({
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
   // 展開状態が変わった時にフレームの高さを再計算
+  // expandedオブジェクトそのものではなく、展開されている行の数を監視
+  const expandedCount = useMemo(() => Object.keys(expanded).length, [expanded])
+
   useEffect(() => {
     if (expandable) {
-      console.log('Expanded state changed:', expanded)
+      console.log('Expanded count changed:', expandedCount)
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
       // requestAnimationFrameで2回待つことで、レンダリングとレイアウトが完了することを保証
       requestAnimationFrame(() => {
@@ -85,7 +88,7 @@ export function AdvancedDataFrame({
         })
       })
     }
-  }, [expanded, expandable])
+  }, [expandedCount, expandable])
 
   // 行選択状態管理（選択された行のインデックス、単一選択のみ）
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
