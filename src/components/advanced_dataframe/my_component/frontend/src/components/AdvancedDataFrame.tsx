@@ -1,5 +1,5 @@
 /**
- * AdvancedDataFrame - Phase 1実装
+ * AdvancedDataFrame - Phase 2実装
  * TanStack Tableを使用した基本的なテーブルコンポーネント
  *
  * Phase 1機能:
@@ -7,9 +7,16 @@
  * - カラムソート（単一カラム、昇順/降順）
  * - カラム幅のリサイズ
  * - Streamlitテーマ対応
+ *
+ * Phase 2機能:
+ * - 行選択（チェックボックス）
+ * - セル選択・範囲選択
+ * - カラムフィルタ（テキスト、数値範囲、セレクト、日付範囲）
  */
 
+import { ColumnFilter } from '@/components/ColumnFilter'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useColumnType } from '@/hooks/useColumnType'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
 import { cn } from '@/lib/utils'
 import {
@@ -20,10 +27,12 @@ import {
 } from '@/types/table'
 import {
   ColumnDef,
+  ColumnFiltersState,
   ColumnResizeMode,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
@@ -46,6 +55,9 @@ export function AdvancedDataFrame({
 
   // ソート状態管理
   const [sorting, setSorting] = useState<SortingState>([])
+
+  // フィルタ状態管理
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   // 行選択状態管理（選択された行のインデックス、単一選択のみ）
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
@@ -148,6 +160,34 @@ export function AdvancedDataFrame({
     return numericCols
   }, [data, columns])
 
+  /**
+   * カラムタイプマップを取得（フィルタUIの種類を決定）
+   */
+  const columnTypeMap = useColumnType(data, columns)
+
+  /**
+   * テキストカラムのユニーク値を取得（10個以下の場合のみ）
+   */
+  const uniqueValuesMap = useMemo(() => {
+    const map = new Map<string, string[]>()
+
+    columns.forEach((col) => {
+      const colType = columnTypeMap.get(col.id)
+      if (colType !== 'text') return
+
+      const values = data
+        .map((row) => String(row[col.id] ?? ''))
+        .filter((val) => val !== '')
+
+      const uniqueValues = Array.from(new Set(values)).sort()
+      if (uniqueValues.length > 0 && uniqueValues.length <= 10) {
+        map.set(col.id, uniqueValues)
+      }
+    })
+
+    return map
+  }, [data, columns, columnTypeMap])
+
   // カラム定義をTanStack Table形式に変換
   const columnHelper = createColumnHelper<RowData>()
   const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(() => {
@@ -188,6 +228,56 @@ export function AdvancedDataFrame({
 
           // その他の型はデフォルトの比較
           return a < b ? -1 : a > b ? 1 : 0
+        },
+        // カスタムフィルタ関数（カラムタイプに応じて処理）
+        filterFn: (row, columnId, filterValue) => {
+          const cellValue = row.getValue(columnId)
+          const colType = columnTypeMap.get(columnId)
+
+          // フィルタが有効でない場合はすべて表示
+          if (!colType) return true
+
+          switch (colType) {
+            case 'text': {
+              // テキストフィルタ: 文字列の場合は部分一致、オブジェクトの場合は複数選択
+              if (!filterValue || filterValue === '') return true
+
+              // 複数選択フィルタの場合
+              if (
+                typeof filterValue === 'object' &&
+                (filterValue as any).type === 'multiselect'
+              ) {
+                const selectedValues = (filterValue as any).values as string[]
+                if (selectedValues.length === 0) return true
+                const cellText = String(cellValue ?? '')
+                return selectedValues.includes(cellText)
+              }
+
+              // テキスト検索の場合
+              const searchValue = String(filterValue).toLowerCase()
+              const cellText = String(cellValue ?? '').toLowerCase()
+              return cellText.includes(searchValue)
+            }
+            case 'number': {
+              // 数値範囲フィルタ: [min, max]
+              if (!filterValue) return true
+              const [min, max] = filterValue as [
+                number | undefined,
+                number | undefined,
+              ]
+              if (min === undefined && max === undefined) return true
+
+              const numValue = Number(cellValue)
+              if (isNaN(numValue)) return false
+
+              if (min !== undefined && numValue < min) return false
+              if (max !== undefined && numValue > max) return false
+              return true
+            }
+            // select, dateは今後実装
+            default:
+              return true
+          }
         },
       }),
     )
@@ -232,10 +322,13 @@ export function AdvancedDataFrame({
     columns: tableColumns,
     state: {
       sorting,
+      columnFilters,
     },
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     columnResizeMode,
     enableSortingRemoval: true,
     enableMultiSort: false, // Phase 1では単一カラムソートのみ
@@ -539,18 +632,38 @@ export function AdvancedDataFrame({
                     onMouseEnter={() => setHoveredHeaderId(header.id)}
                     onMouseLeave={() => setHoveredHeaderId(null)}
                   >
-                    <div className="flex items-center gap-1 opacity-70">
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                      {/* ソートインジケーター（ソート中のみ表示） */}
-                      {header.column.getCanSort() &&
-                        header.column.getIsSorted() && (
-                          <span className="text-xs opacity-60">
-                            {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
-                          </span>
+                    <div className="flex items-center justify-between w-full opacity-70">
+                      <div className="flex items-center gap-1">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
                         )}
+                        {/* ソートインジケーター（ソート中のみ表示） */}
+                        {header.column.getCanSort() &&
+                          header.column.getIsSorted() && (
+                            <span className="text-xs opacity-60">
+                              {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                      </div>
+                      {/* フィルタアイコン（フィルタ有効カラムのみ、右端に配置） */}
+                      {columnTypeMap.has(header.column.id) && (
+                        <ColumnFilter
+                          column={header.column}
+                          columnType={columnTypeMap.get(header.column.id)!}
+                          uniqueValues={uniqueValuesMap.get(header.column.id)}
+                          onOpenChange={(open) => {
+                            // Popover開いている間はヘッダのホバー状態をクリア
+                            if (open) {
+                              setHoveredHeaderId(null)
+                            }
+                          }}
+                          onPopoverMouseEnter={() => {
+                            // Popoverコンテンツにマウスが入ったらヘッダのホバー状態をクリア
+                            setHoveredHeaderId(null)
+                          }}
+                        />
+                      )}
                     </div>
 
                     {/* カラムリサイズハンドル */}

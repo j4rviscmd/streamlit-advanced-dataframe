@@ -27,6 +27,7 @@ def advanced_dataframe(
     height: int = 600,
     full_width: bool = False,
     enable_row_selection: bool = False,
+    enable_filters: list[str] | None = None,
     key: str | None = None,
 ) -> Any:
     """
@@ -45,6 +46,7 @@ def advanced_dataframe(
 
     Phase 2機能:
     - 行選択（単一行選択）
+    - カラムフィルタ（テキスト、数値範囲、セレクト、日付範囲）
 
     Parameters
     ----------
@@ -59,6 +61,10 @@ def advanced_dataframe(
     enable_row_selection : bool, optional
         行選択機能を有効化するか、デフォルトはFalse
         Trueの場合、左端にチェックボックスが表示され、行を選択できます
+    enable_filters : list[str] or None, optional
+        フィルタ機能を有効化するカラム名のリスト、デフォルトはNone
+        指定されたカラムにフィルタアイコンが表示され、フィルタリングが可能になります
+        フィルタタイプ（テキスト、数値範囲、セレクト、日付）は自動判定されます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -92,20 +98,36 @@ def advanced_dataframe(
     >>> if selected_row is not None:
     ...     st.write(f"選択された行: {selected_row}")
     ...     st.write(df.iloc[selected_row])
+    >>>
+    >>> # フィルタ機能を有効化
+    >>> advanced_dataframe(
+    ...     data=df,
+    ...     height=400,
+    ...     enable_filters=["name", "age", "city"],
+    ...     key="filterable_table"
+    ... )
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
     data_json: list[dict[Hashable, Any]] = data.to_dict("records")
 
     # カラム設定を生成
-    columns_json: list[dict[str, Any]] = [
-        {
+    columns_json: list[dict[str, Any]] = []
+    for col in data.columns:
+        col_config: dict[str, Any] = {
             "id": col,
             "header": col,
             "enableSorting": True,
             "enableResizing": True,
         }
-        for col in data.columns
-    ]
+
+        # フィルタが有効なカラムの場合、filterConfigを追加
+        if enable_filters and col in enable_filters:
+            col_config["filterConfig"] = {
+                "enabled": True,
+                # typeは省略（フロントエンドで自動判定）
+            }
+
+        columns_json.append(col_config)
 
     # コンポーネントを呼び出し
     component_value = _component_func(

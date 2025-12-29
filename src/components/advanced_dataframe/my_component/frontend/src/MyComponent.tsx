@@ -1,4 +1,5 @@
 import { AdvancedDataFrame } from '@/components/AdvancedDataFrame'
+import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
 import { StreamlitProps } from '@/types/table'
 import { useEffect } from 'react'
 import { Streamlit } from 'streamlit-component-lib'
@@ -10,6 +11,7 @@ import { useRenderData } from 'streamlit-component-lib-react-hooks'
  */
 function MyComponent() {
   const renderData = useRenderData()
+  const { isDark } = useStreamlitTheme()
 
   // Pythonから渡された引数を取得
   const data = renderData.args['data'] || []
@@ -31,6 +33,15 @@ function MyComponent() {
   useEffect(() => {
     Streamlit.setFrameHeight()
   }, [])
+
+  // Streamlitテーマに応じて.darkクラスを適用（shadcn/ui用）
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [isDark])
 
   return <AdvancedDataFrame {...props} />
 }

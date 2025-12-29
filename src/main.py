@@ -25,99 +25,94 @@ def main():
 
     ### Phase 2:
     - ✅ 行選択（単一行選択）
+    - ✅ カラムフィルタ（テキスト検索）
+    - ✅ カラムフィルタ（テキスト + 複数選択） ← NEW!
+    - ✅ カラムフィルタ（数値範囲）
+    - 🚧 カラムフィルタ（日付範囲）← 実装中
     """
     )
 
-    # サンプルデータ1: 基本的なデータ
-    st.header("1. 基本的なテーブル表示")
-    df_basic = pd.DataFrame(
-        {
-            "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
-            "年齢": [25, 30, 35, 28, 32],
-            "都市": ["東京", "大阪", "東京", "福岡", "札幌"],
-            "スコア": [85, 92, 78, 88, 95],
-        }
+    # Phase 2: カラムフィルタ機能のデモ（最新機能を上に配置）
+    st.header("1. カラムフィルタ機能（Phase 2）← NEW!")
+    st.markdown(
+        """
+    ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
+    フィルタタイプは、カラムのデータ型から自動判定されます。
+
+    **現在実装済み:**
+    - ✅ テキストフィルタ（部分一致検索）
+    - ✅ テキストフィルタ + 複数選択（ユニーク値10個以下の場合）← NEW!
+    - ✅ 数値範囲フィルタ（最小値・最大値）
+
+    **実装予定:**
+    - 🚧 日付範囲フィルタ（開始日・終了日）
+    """
     )
 
-    st.write("**標準のst.dataframe（比較用）:**")
-
-    def on_select():
-        pass
-
-    st.dataframe(
-        df_basic,
-        selection_mode="single-row",
-        on_select=on_select,
-        height=200,
-    )
-
-    st.write("**advanced_dataframe（Phase 1版）:**")
-    advanced_dataframe(data=df_basic, height=250, key="basic_table")
-
-    # サンプルデータ2: 多数のカラム
-    st.header("2. 多数のカラムを持つテーブル")
-    df_many_cols = pd.DataFrame(
+    df_filter = pd.DataFrame(
         {
-            "ID": range(1, 11),
-            "商品名": [f"商品{i}" for i in range(1, 11)],
-            "カテゴリ": ["食品", "家電", "衣類", "書籍", "雑貨"] * 2,
-            "価格": [
-                1000,
-                25000,
-                3500,
-                1200,
-                800,
-                2000,
-                35000,
-                4500,
-                1500,
-                900,
+            "商品名": [
+                "iPhone 15 Pro",
+                "Galaxy S24",
+                "Pixel 8 Pro",
+                "Xperia 5 V",
+                "AQUOS sense8",
+                "Redmi Note 13",
+                "Nothing Phone (2)",
+                "Motorola edge 40",
             ],
-            "在庫数": [50, 10, 30, 100, 75, 20, 5, 40, 80, 60],
-            "評価": [4.5, 4.8, 4.2, 4.0, 4.6, 4.3, 4.9, 4.1, 4.4, 4.7],
+            "カテゴリ": [
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+            ],
+            "メーカー": [
+                "Apple",
+                "Samsung",
+                "Google",
+                "Sony",
+                "Sharp",
+                "Xiaomi",
+                "Nothing",
+                "Motorola",
+            ],
+            "価格": [
+                159800,
+                139800,
+                128000,
+                114800,
+                39800,
+                29800,
+                79800,
+                59800,
+            ],
+            "在庫数": [15, 22, 18, 10, 45, 60, 8, 25],
         }
+    )
+
+    st.markdown("**フィルタのデモ:**")
+    st.markdown(
+        """
+        - 「商品名」: テキストフィルタ（部分一致検索）
+        - 「メーカー」: テキストフィルタ + 複数選択（ユニーク値が10個以下）← NEW!
+        - 「価格」「在庫数」: 数値範囲フィルタ（最小値・最大値で絞り込み）
+        """
     )
 
     advanced_dataframe(
-        data=df_many_cols,
-        height=350,
-        key="many_cols_table",
-        full_width=True,
-    )
-
-    # サンプルデータ3: 数値データ
-    st.header("3. 数値データのソート確認")
-    df_numbers = pd.DataFrame(
-        {
-            "整数": [10, 5, 8, 3, 15, 1, 12],
-            "小数": [3.14, 2.71, 1.41, 9.81, 6.28, 4.67, 8.85],
-            "負の数": [-5, 10, -3, 8, -12, 0, 7],
-        }
-    )
-
-    st.write("各カラムをクリックしてソート順を確認してください（昇順↑/降順↓）")
-    advanced_dataframe(data=df_numbers, height=250, key="numbers_table")
-
-    # 使い方説明
-    st.header("使い方")
-    st.markdown(
-        """
-    ### ソート
-    - カラムヘッダをクリックすると、そのカラムでソートされます
-    - 2回クリックすると降順↓になります
-    - 3回クリックするとソートが解除されます
-
-    ### カラム幅のリサイズ
-    - カラムヘッダの右端にマウスを持っていくと、リサイズハンドルが表示されます
-    - ドラッグして幅を調整できます
-
-    ### テーマ
-    - Streamlitのテーマ設定（Settings > Theme）を変更すると、テーブルの色も自動的に変わります
-    """
+        data=df_filter,
+        height=400,
+        enable_filters=["商品名", "メーカー", "価格", "在庫数"],
+        key="filter_table",
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("4. 行選択機能（Phase 2）")
+    st.header("2. 行選択機能（Phase 2）")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -151,9 +146,99 @@ def main():
     if selected_row is not None:
         st.success(f"選択された行: {selected_row}")
         st.write("選択された行のデータ:")
-        st.dataframe(df_selection.iloc[[selected_row]], use_container_width=True)
+        st.dataframe(
+            df_selection.iloc[[selected_row]], use_container_width=True
+        )
     else:
         st.info("行が選択されていません")
+
+    # サンプルデータ1: 基本的なデータ
+    st.header("3. 基本的なテーブル表示")
+    df_basic = pd.DataFrame(
+        {
+            "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
+            "年齢": [25, 30, 35, 28, 32],
+            "都市": ["東京", "大阪", "東京", "福岡", "札幌"],
+            "スコア": [85, 92, 78, 88, 95],
+        }
+    )
+
+    st.write("**標準のst.dataframe（比較用）:**")
+
+    def on_select():
+        pass
+
+    st.dataframe(
+        df_basic,
+        selection_mode="single-row",
+        on_select=on_select,
+        height=200,
+    )
+
+    st.write("**advanced_dataframe（Phase 1版）:**")
+    advanced_dataframe(data=df_basic, height=250, key="basic_table")
+
+    # サンプルデータ2: 多数のカラム
+    st.header("4. 多数のカラムを持つテーブル")
+    df_many_cols = pd.DataFrame(
+        {
+            "ID": range(1, 11),
+            "商品名": [f"商品{i}" for i in range(1, 11)],
+            "カテゴリ": ["食品", "家電", "衣類", "書籍", "雑貨"] * 2,
+            "価格": [
+                1000,
+                25000,
+                3500,
+                1200,
+                800,
+                2000,
+                35000,
+                4500,
+                1500,
+                900,
+            ],
+            "在庫数": [50, 10, 30, 100, 75, 20, 5, 40, 80, 60],
+            "評価": [4.5, 4.8, 4.2, 4.0, 4.6, 4.3, 4.9, 4.1, 4.4, 4.7],
+        }
+    )
+
+    advanced_dataframe(
+        data=df_many_cols,
+        height=350,
+        key="many_cols_table",
+        full_width=True,
+    )
+
+    # サンプルデータ3: 数値データ
+    st.header("5. 数値データのソート確認")
+    df_numbers = pd.DataFrame(
+        {
+            "整数": [10, 5, 8, 3, 15, 1, 12],
+            "小数": [3.14, 2.71, 1.41, 9.81, 6.28, 4.67, 8.85],
+            "負の数": [-5, 10, -3, 8, -12, 0, 7],
+        }
+    )
+
+    st.write("各カラムをクリックしてソート順を確認してください（昇順↑/降順↓）")
+    advanced_dataframe(data=df_numbers, height=250, key="numbers_table")
+
+    # 使い方説明
+    st.header("使い方")
+    st.markdown(
+        """
+    ### ソート
+    - カラムヘッダをクリックすると、そのカラムでソートされます
+    - 2回クリックすると降順↓になります
+    - 3回クリックするとソートが解除されます
+
+    ### カラム幅のリサイズ
+    - カラムヘッダの右端にマウスを持っていくと、リサイズハンドルが表示されます
+    - ドラッグして幅を調整できます
+
+    ### テーマ
+    - Streamlitのテーマ設定（Settings > Theme）を変更すると、テーブルの色も自動的に変わります
+    """
+    )
 
 
 if __name__ == "__main__":

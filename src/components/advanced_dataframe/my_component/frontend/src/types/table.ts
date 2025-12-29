@@ -22,7 +22,40 @@ export interface ColumnConfig {
   enableSorting?: boolean
   /** リサイズ可否（デフォルト: true） */
   enableResizing?: boolean
+  /** フィルタ設定（Phase 2で追加） */
+  filterConfig?: FilterConfig
 }
+
+/**
+ * フィルタ設定型
+ * Phase 2で追加
+ */
+export interface FilterConfig {
+  /** フィルタ機能を有効化するか */
+  enabled: boolean
+  /** フィルタタイプ（未指定の場合は自動判定） */
+  type?: ColumnType
+}
+
+/**
+ * カラムタイプ（フィルタUIの種類）
+ * データの型から自動判定される
+ */
+export type ColumnType = 'text' | 'number' | 'select' | 'date'
+
+/**
+ * カラムタイプマップ（カラムIDをキーとしたカラムタイプのマップ）
+ */
+export type ColumnTypeMap = Map<string, ColumnType>
+
+/**
+ * フィルタ値の型（各フィルタタイプに対応）
+ */
+export type FilterValue =
+  | string // text filter
+  | [number | undefined, number | undefined] // number range filter [min, max]
+  | string[] // select filter (multiple selection)
+  | [Date | undefined, Date | undefined] // date range filter [start, end]
 
 /**
  * Streamlitから受け取るProps
