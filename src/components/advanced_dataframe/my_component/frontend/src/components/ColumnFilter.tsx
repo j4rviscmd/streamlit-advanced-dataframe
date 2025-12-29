@@ -60,6 +60,8 @@ export function ColumnFilter({
       let estimatedPopoverHeight = 120 // デフォルト（ヘッダ + 小さいコンテンツ）
       if (columnType === 'text' && uniqueValues && uniqueValues.length > 0) {
         estimatedPopoverHeight = 380 // テキスト複数選択（ScrollArea 192px + その他）
+      } else if (columnType === 'select') {
+        estimatedPopoverHeight = 380 // セレクト複数選択（ScrollArea 192px + その他）
       } else if (columnType === 'number') {
         estimatedPopoverHeight = 200 // 数値範囲（入力欄2つ + その他）
       } else if (columnType === 'date') {
@@ -208,7 +210,18 @@ export function ColumnFilter({
             onChange={setDateRangeFilterValue}
           />
         )
-      // Step 3で実装予定: select
+      case 'select':
+        // selectタイプは複数選択のみ（検索機能付き）
+        return (
+          <TextFilter
+            value={textSearchValue}
+            onChange={setTextFilterValue}
+            placeholder="検索..."
+            uniqueValues={uniqueValues}
+            selectedValues={selectedUniqueValues}
+            onSelectedValuesChange={setSelectedValuesFilter}
+          />
+        )
       default:
         return (
           <p className="text-muted-foreground text-sm">

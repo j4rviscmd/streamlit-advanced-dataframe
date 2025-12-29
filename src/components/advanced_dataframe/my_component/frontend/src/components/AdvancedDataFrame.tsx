@@ -189,21 +189,27 @@ export function AdvancedDataFrame({
   const columnTypeMap = useColumnType(data, columns)
 
   /**
-   * テキストカラムのユニーク値を取得（10個以下の場合のみ）
+   * テキスト・セレクトカラムのユニーク値を取得
+   * - textタイプ: 10個以下の場合のみ
+   * - selectタイプ: 常に取得
    */
   const uniqueValuesMap = useMemo(() => {
     const map = new Map<string, string[]>()
 
     columns.forEach((col) => {
       const colType = columnTypeMap.get(col.id)
-      if (colType !== 'text') return
+      if (colType !== 'text' && colType !== 'select') return
 
       const values = data
         .map((row) => String(row[col.id] ?? ''))
         .filter((val) => val !== '')
 
       const uniqueValues = Array.from(new Set(values)).sort()
-      if (uniqueValues.length > 0 && uniqueValues.length <= 10) {
+      // selectタイプは常に、textタイプは10個以下の場合のみ
+      if (
+        uniqueValues.length > 0 &&
+        (colType === 'select' || uniqueValues.length <= 10)
+      ) {
         map.set(col.id, uniqueValues)
       }
     })
@@ -333,7 +339,26 @@ export function AdvancedDataFrame({
 
               return true
             }
-            // selectは今後実装
+            case 'select': {
+              // セレクトフィルタ: 複数選択のみ
+              if (!filterValue || filterValue === '') return true
+
+              // 複数選択フィルタの場合
+              if (
+                typeof filterValue === 'object' &&
+                (filterValue as any).type === 'multiselect'
+              ) {
+                const selectedValues = (filterValue as any).values as string[]
+                if (selectedValues.length === 0) return true
+                const cellText = String(cellValue ?? '')
+                return selectedValues.includes(cellText)
+              }
+
+              // テキスト検索の場合（フォールバック）
+              const searchValue = String(filterValue).toLowerCase()
+              const cellText = String(cellValue ?? '').toLowerCase()
+              return cellText.includes(searchValue)
+            }
             default:
               return true
           }
