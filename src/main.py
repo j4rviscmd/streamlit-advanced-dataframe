@@ -37,12 +37,85 @@ def main():
     - ✅ ヘッダ結合（カラムグループ）
 
     ### Phase 4:
-    - ✅ 行展開（階層データ表示） ← NEW!
+    - ✅ 行展開（階層データ表示）
+    - ✅ 集計行（数値合計、Bool率表示、スクロール固定） ← NEW!
     """
     )
 
-    # Phase 4: 行展開機能 + 行選択機能のデモ（最新機能を上に配置）
-    st.header("1. 行展開 + 行選択機能（Phase 4 + Phase 2）← NEW!")
+    # Phase 4: 集計行のデモ（100行データでスクロール確認）
+    st.header("1. 集計行機能デモ（100行データ）← NEW!")
+    st.markdown(
+        """
+    **集計行の動作確認用に100行のランダムデータを生成:**
+    - 数値カラム（価格、在庫数）の合計
+    - Boolean型カラム（在庫あり、セール中）のTrue率
+    - テーブルをスクロールしても集計行が下部に固定表示される
+    """
+    )
+
+    # 100行のランダムデータを生成（カラムを増やして横スクロール確認）
+    import random
+
+    random.seed(42)  # 再現性のため
+
+    categories = [
+        "食品",
+        "家電",
+        "衣類",
+        "書籍",
+        "雑貨",
+        "スポーツ",
+        "玩具",
+        "美容",
+    ]
+    manufacturers = [
+        "メーカーA",
+        "メーカーB",
+        "メーカーC",
+        "メーカーD",
+        "メーカーE",
+    ]
+    df_100 = pd.DataFrame(
+        {
+            "商品ID": [f"P{i:04d}" for i in range(1, 101)],
+            "商品名": [f"商品{i}" for i in range(1, 101)],
+            "カテゴリ": [random.choice(categories) for _ in range(100)],
+            "メーカー": [random.choice(manufacturers) for _ in range(100)],
+            "価格": [random.randint(500, 50000) for _ in range(100)],
+            "原価": [random.randint(300, 30000) for _ in range(100)],
+            "在庫数": [random.randint(0, 100) for _ in range(100)],
+            "販売数": [random.randint(0, 500) for _ in range(100)],
+            "評価": [round(random.uniform(3.0, 5.0), 1) for _ in range(100)],
+            "在庫あり": [random.choice([True, False]) for _ in range(100)],
+            "セール中": [random.choice([True, False]) for _ in range(100)],
+            "新商品": [random.choice([True, False]) for _ in range(100)],
+        }
+    )
+
+    st.markdown("**集計行に注目:** スクロールしても下部に固定されています")
+
+    advanced_dataframe(
+        data=df_100,
+        height=400,
+        # full_width=True,
+        enable_filters=[
+            "カテゴリ",
+            "メーカー",
+            "価格",
+            "原価",
+            "在庫数",
+            "販売数",
+            "在庫あり",
+            "セール中",
+            "新商品",
+        ],
+        show_filter_records=True,
+        show_aggregation=True,
+        key="aggregation_100_table",
+    )
+
+    # Phase 4: 行展開機能 + 行選択機能 + 集計行のデモ（最新機能を上に配置）
+    st.header("2. 行展開 + 行選択 + 集計行機能（Phase 4）← NEW!")
     st.markdown(
         """
     `expandable=True`と`enable_row_selection=True`と`enable_filters`を同時に有効にできます。
@@ -52,6 +125,9 @@ def main():
     - ✅ チェックボックスで行選択（Streamlitテーマカラー対応）
     - ✅ Boolean型カラムはチェックボックスで表示（読み取り専用）
     - ✅ カラムフィルタ機能（テキスト、数値範囲など）
+    - ✅ **集計行（テーブル下部に固定、スクロール時も表示）** ← NEW!
+      - 数値カラム: 親行の合計を表示
+      - Boolean型カラム: True率を%で表示
     - ✅ サブ行データは`subRows`キーに指定（キー名は`sub_rows_key`でカスタマイズ可能）
     - ✅ 任意の階層レベルをサポート
     """
@@ -74,8 +150,20 @@ def main():
                         "在庫あり": True,
                         "セール中": True,
                         "subRows": [
-                            {"カテゴリ": "キャベツ", "売上": 8000, "在庫": 25, "在庫あり": True, "セール中": False},
-                            {"カテゴリ": "トマト", "売上": 12000, "在庫": 35, "在庫あり": True, "セール中": True},
+                            {
+                                "カテゴリ": "キャベツ",
+                                "売上": 8000,
+                                "在庫": 25,
+                                "在庫あり": True,
+                                "セール中": False,
+                            },
+                            {
+                                "カテゴリ": "トマト",
+                                "売上": 12000,
+                                "在庫": 35,
+                                "在庫あり": True,
+                                "セール中": True,
+                            },
                         ],
                     },
                     {
@@ -85,7 +173,13 @@ def main():
                         "在庫あり": True,
                         "セール中": False,
                         "subRows": [
-                            {"カテゴリ": "りんご", "売上": 15000, "在庫": 45, "在庫あり": True, "セール中": False},
+                            {
+                                "カテゴリ": "りんご",
+                                "売上": 15000,
+                                "在庫": 45,
+                                "在庫あり": True,
+                                "セール中": False,
+                            },
                             {
                                 "カテゴリ": "みかん",
                                 "売上": 15000,
@@ -127,11 +221,29 @@ def main():
                         "在庫あり": True,
                         "セール中": True,
                         "subRows": [
-                            {"カテゴリ": "4K", "売上": 50000, "在庫": 12, "在庫あり": True, "セール中": False},
-                            {"カテゴリ": "8K", "売上": 30000, "在庫": 8, "在庫あり": False, "セール中": True},
+                            {
+                                "カテゴリ": "4K",
+                                "売上": 50000,
+                                "在庫": 12,
+                                "在庫あり": True,
+                                "セール中": False,
+                            },
+                            {
+                                "カテゴリ": "8K",
+                                "売上": 30000,
+                                "在庫": 8,
+                                "在庫あり": False,
+                                "セール中": True,
+                            },
                         ],
                     },
-                    {"カテゴリ": "冷蔵庫", "売上": 40000, "在庫": 25, "在庫あり": True, "セール中": False},
+                    {
+                        "カテゴリ": "冷蔵庫",
+                        "売上": 40000,
+                        "在庫": 25,
+                        "在庫あり": True,
+                        "セール中": False,
+                    },
                 ],
             },
             {
@@ -141,8 +253,20 @@ def main():
                 "在庫あり": True,
                 "セール中": False,
                 "subRows": [
-                    {"カテゴリ": "メンズ", "売上": 15000, "在庫": 80, "在庫あり": True, "セール中": False},
-                    {"カテゴリ": "レディース", "売上": 20000, "在庫": 120, "在庫あり": True, "セール中": True},
+                    {
+                        "カテゴリ": "メンズ",
+                        "売上": 15000,
+                        "在庫": 80,
+                        "在庫あり": True,
+                        "セール中": False,
+                    },
+                    {
+                        "カテゴリ": "レディース",
+                        "売上": 20000,
+                        "在庫": 120,
+                        "在庫あり": True,
+                        "セール中": True,
+                    },
                 ],
             },
         ]
@@ -160,6 +284,10 @@ def main():
     **Boolean型カラム:** 「在庫あり」「セール中」はチェックボックスで表示されます
 
     **フィルタ:** カラムヘッダの🔍アイコンでフィルタリングできます
+
+    **集計行:** テーブル下部に固定表示（スクロールしても隠れません）
+    - 「売上」「在庫」: 親行3件（食品、家電、衣類）の合計
+    - 「在庫あり」「セール中」: 親行のTrue率を%で表示
 
     ※ 理論上は**無制限にネスト可能**です（TanStack Tableの仕様）
     """
@@ -186,7 +314,7 @@ def main():
         st.info("行が選択されていません")
 
     # Phase 3: ヘッダ結合（カラムグループ）機能のデモ
-    st.header("2. ヘッダ結合（カラムグループ）機能（Phase 3）")
+    st.header("3. ヘッダ結合（カラムグループ）機能（Phase 3）")
     st.markdown(
         """
     `column_groups`パラメータで複数のカラムをグループ化し、ヘッダを結合できます。
@@ -229,7 +357,7 @@ def main():
     )
 
     # Phase 3: カラム表示/非表示機能のデモ
-    st.header("3. カラム表示/非表示機能（Phase 3）")
+    st.header("4. カラム表示/非表示機能（Phase 3）")
     st.markdown(
         """
     `visible_columns`パラメータで表示するカラムを指定できます。
@@ -266,7 +394,7 @@ def main():
     )
 
     # Phase 3: カラム並び替え機能のデモ
-    st.header("4. カラム並び替え機能（Phase 3）")
+    st.header("5. カラム並び替え機能（Phase 3）")
     st.markdown(
         """
     カラムヘッダをドラッグ&ドロップで並び替えできます。
@@ -302,7 +430,7 @@ def main():
     )
 
     # Phase 2: グローバル検索機能のデモ
-    st.header("5. グローバル検索機能（Phase 2）")
+    st.header("6. グローバル検索機能（Phase 2）")
     st.markdown(
         """
     テーブルにマウスをホバーすると、右上に検索アイコン（🔍）が表示されます。
@@ -352,7 +480,7 @@ def main():
     )
 
     # Phase 2: 日付フィルタ機能のデモ
-    st.header("6. 日付フィルタ機能（Phase 2）")
+    st.header("7. 日付フィルタ機能（Phase 2）")
     st.markdown(
         """
     日付カラムのフィルタアイコン（🔍）をクリックして、日付範囲でフィルタできます。
@@ -407,7 +535,7 @@ def main():
     )
 
     # Phase 2: カラムフィルタ機能のデモ
-    st.header("7. カラムフィルタ機能（Phase 2）")
+    st.header("8. カラムフィルタ機能（Phase 2）")
     st.markdown(
         """
     ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
@@ -487,7 +615,7 @@ def main():
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("8. 行選択機能（Phase 2）+ Boolean型表示")
+    st.header("9. 行選択機能（Phase 2）+ Boolean型表示")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -536,7 +664,7 @@ def main():
         st.info("行が選択されていません")
 
     # サンプルデータ1: 基本的なデータ
-    st.header("9. 基本的なテーブル表示")
+    st.header("10. 基本的なテーブル表示")
     df_basic = pd.DataFrame(
         {
             "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
@@ -562,7 +690,7 @@ def main():
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
-    st.header("10. 多数のカラムを持つテーブル")
+    st.header("11. 多数のカラムを持つテーブル")
     df_many_cols = pd.DataFrame(
         {
             "ID": range(1, 11),
@@ -593,7 +721,7 @@ def main():
     )
 
     # サンプルデータ3: 数値データ
-    st.header("11. 数値データのソート確認")
+    st.header("12. 数値データのソート確認")
     df_numbers = pd.DataFrame(
         {
             "整数": [10, 5, 8, 3, 15, 1, 12],

@@ -95,6 +95,8 @@ export interface StreamlitProps {
   expandable?: boolean
   /** サブ行データのキー名（デフォルト: 'subRows'）（Phase 4で追加） */
   subRowsKey?: string
+  /** 集計行の表示を有効化するか（デフォルト: true）（Phase 4で追加） */
+  showAggregation?: boolean
 
   // 以下、Phase 5以降で追加予定
   // enableExport?: boolean

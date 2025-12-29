@@ -65,6 +65,7 @@ def advanced_dataframe(
     column_groups: list[dict[str, Any]] | None = None,
     expandable: bool = False,
     sub_rows_key: str = "subRows",
+    show_aggregation: bool = True,
     key: str | None = None,
 ) -> Any:
     """
@@ -121,6 +122,11 @@ def advanced_dataframe(
     sub_rows_key : str, optional
         サブ行データのキー名、デフォルトは"subRows"
         各行のこのキーにサブ行のリスト（dict）を含めることで階層表示されます
+    show_aggregation : bool, optional
+        集計行の表示を有効化するか、デフォルトはTrue
+        Trueの場合、テーブル下部に固定された集計行が表示されます
+        数値カラムは合計、Boolean型カラムはTrue率（%）を表示します
+        階層データの場合は親行のみを集計対象とします
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -228,6 +234,7 @@ def advanced_dataframe(
         column_groups=column_groups,
         expandable=expandable,
         sub_rows_key=sub_rows_key,
+        show_aggregation=show_aggregation,
         key=key,
         default=None,
     )

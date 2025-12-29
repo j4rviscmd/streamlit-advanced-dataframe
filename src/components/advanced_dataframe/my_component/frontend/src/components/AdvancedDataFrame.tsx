@@ -58,6 +58,7 @@ export function AdvancedDataFrame({
   columnGroups,
   expandable = false,
   subRowsKey = 'subRows',
+  showAggregation = true,
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
@@ -233,6 +234,61 @@ export function AdvancedDataFrame({
 
     return booleanCols
   }, [data, columns])
+
+  /**
+   * 集計行の値を計算（親行のみを対象）
+   * - 数値カラム: 合計
+   * - Boolカラム: True率（%）
+   * - その他: 空白
+   */
+  const aggregationRow = useMemo(() => {
+    if (!showAggregation) return null
+
+    // 親行のみを抽出（階層データの場合）
+    const parentRows = expandable
+      ? data.filter((row) => {
+          // subRowsKeyを持つ行が親行
+          // または、すべての行が親行として扱われる（expandableがfalseの場合）
+          return true // dataはすでに親行のみを含んでいる
+        })
+      : data
+
+    const aggregation: Record<string, string | number> = {}
+
+    columns.forEach((col) => {
+      const colId = col.id
+      const values = parentRows
+        .map((row) => row[colId])
+        .filter((val) => val != null)
+
+      if (values.length === 0) {
+        aggregation[colId] = ''
+        return
+      }
+
+      // Boolean型カラムの場合: True率を計算
+      if (booleanColumns.has(colId)) {
+        const boolValues = values as boolean[]
+        const trueCount = boolValues.filter((v) => v === true).length
+        const percentage = (trueCount / boolValues.length) * 100
+        aggregation[colId] = `${Math.round(percentage)}%`
+        return
+      }
+
+      // 数値カラムの場合: 合計を計算
+      const allNumbers = values.every((val) => typeof val === 'number')
+      if (allNumbers) {
+        const sum = (values as number[]).reduce((acc, val) => acc + val, 0)
+        aggregation[colId] = sum
+        return
+      }
+
+      // その他（テキスト、日付など）: 空白
+      aggregation[colId] = ''
+    })
+
+    return aggregation
+  }, [showAggregation, data, columns, booleanColumns, expandable])
 
   /**
    * カラムタイプマップを取得（フィルタUIの種類を決定）
@@ -1015,6 +1071,7 @@ export function AdvancedDataFrame({
         )}
         style={{
           maxHeight: height ? `${height}px` : 'none',
+          maxWidth: '100%', // full_width=falseのときも親要素を超えないようにする
           fontFamily: theme.font,
           color: textColor,
           borderColor: borderColor,
@@ -1202,17 +1259,18 @@ export function AdvancedDataFrame({
                   const isLastColumn =
                     cellIndex === row.getVisibleCells().length - 1
 
-                  const isSelected = isCellSelected(rowIndex, cell.column.id)
-                  const selectionBorders = getSelectionBorders(
-                    rowIndex,
-                    cell.column.id,
-                  )
+                  // 選択範囲がないときは選択判定をスキップ（パフォーマンス最適化）
+                  const isSelected = selectedCells.length > 0 ? isCellSelected(rowIndex, cell.column.id) : false
+                  const selectionBorders = selectedCells.length > 0
+                    ? getSelectionBorders(rowIndex, cell.column.id)
+                    : { top: false, right: false, bottom: false, left: false }
                   const isNumeric = numericColumns.has(cell.column.id)
                   const isBoolean = booleanColumns.has(cell.column.id)
                   const isSelectionColumn = cell.column.id === '__selection__'
                   const isExpanderColumn = cell.column.id === '__expander__'
-                  const isMatched = isCellMatched(rowIndex, cell.column.id)
-                  const isCurrentMatchCell = isCurrentMatch(rowIndex, cell.column.id)
+                  // 検索クエリがないときは一致判定をスキップ（パフォーマンス最適化）
+                  const isMatched = searchQuery ? isCellMatched(rowIndex, cell.column.id) : false
+                  const isCurrentMatchCell = searchQuery ? isCurrentMatch(rowIndex, cell.column.id) : false
 
                   // 最初のデータカラムかどうか（ツリー線表示用）
                   const specialColumnsCount =
@@ -1383,6 +1441,91 @@ export function AdvancedDataFrame({
             )
           })}
         </tbody>
+
+        {/* 集計行（フッター） */}
+        {showAggregation && aggregationRow && (
+          <tfoot
+            className="relative z-20"
+            style={{
+              position: 'sticky',
+              bottom: 0,
+            }}
+          >
+            <tr>
+              {table.getAllLeafColumns().map((column, columnIndex) => {
+                const colId = column.id
+                const isSelectionColumn = colId === '__selection__'
+                const isExpanderColumn = colId === '__expander__'
+                const isFirstColumn = columnIndex === 0
+
+                // 集計行の背景色（通常より少しだけ暗め、不透明）
+                const aggregationBgColor = isDark
+                  ? '#1E1E1E' // ダークモード: 濃いグレー
+                  : '#F5F5F5' // ライトモード: 明るいグレー
+
+                // 選択・展開カラムは空セル
+                if (isSelectionColumn || isExpanderColumn) {
+                  return (
+                    <td
+                      key={colId}
+                      style={{
+                        width: column.getSize(),
+                        minWidth: column.getSize(),
+                        maxWidth: column.getSize(),
+                        backgroundColor: aggregationBgColor,
+                        borderTop: `2px solid ${
+                          isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
+                        }`,
+                        borderLeft: isFirstColumn ? 'none' : `1px solid ${borderColor}`,
+                        borderRight: 'none',
+                        borderBottom: 'none',
+                        padding: '8px 12px',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        color: textColor,
+                      }}
+                    />
+                  )
+                }
+
+                const value = aggregationRow[colId]
+                const isBoolColumn = booleanColumns.has(colId)
+                const isNumericColumn = numericColumns.has(colId)
+
+                // 数値カラムの場合、3桁区切りでフォーマット
+                const displayValue =
+                  typeof value === 'number'
+                    ? value.toLocaleString()
+                    : value
+
+                return (
+                  <td
+                    key={colId}
+                    style={{
+                      width: column.getSize(),
+                      minWidth: column.getSize(),
+                      maxWidth: column.getSize(),
+                      backgroundColor: aggregationBgColor,
+                      borderTop: `2px solid ${
+                        isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
+                      }`,
+                      borderLeft: isFirstColumn ? 'none' : `1px solid ${borderColor}`,
+                      borderRight: 'none',
+                      borderBottom: 'none',
+                      padding: '8px 12px',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      color: textColor,
+                      textAlign: isNumericColumn || isBoolColumn ? 'right' : 'left',
+                    }}
+                  >
+                    {displayValue}
+                  </td>
+                )
+              })}
+            </tr>
+          </tfoot>
+        )}
       </table>
 
       {/* データが空の場合の表示 */}
