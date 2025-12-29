@@ -73,6 +73,16 @@ export function TableToolbar({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isSearchOpen, handleSearchClose])
 
+  // 検索入力欄でのEnterキー押下時に次の一致箇所へジャンプ
+  const handleSearchInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && totalMatches > 0) {
+        onNextMatch()
+      }
+    },
+    [totalMatches, onNextMatch],
+  )
+
   return (
     <div
       className={cn(
@@ -95,6 +105,7 @@ export function TableToolbar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            onKeyDown={handleSearchInputKeyDown}
             placeholder="Type to search"
             className="w-48 bg-transparent text-sm outline-none"
             style={{
