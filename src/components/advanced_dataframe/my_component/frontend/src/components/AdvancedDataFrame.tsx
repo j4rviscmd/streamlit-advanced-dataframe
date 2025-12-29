@@ -71,6 +71,9 @@ export function AdvancedDataFrame({
   // 展開状態管理（Phase 4で追加）
   const [expanded, setExpanded] = useState<ExpandedState>({})
 
+  // 前回のフレーム高さを記憶（無限ループ防止）
+  const previousHeightRef = useRef<number>(0)
+
   // 展開状態が変わった時にフレームの高さを再計算
   // expandedオブジェクトそのものではなく、展開されている行の数を監視
   const expandedCount = useMemo(() => Object.keys(expanded).length, [expanded])
@@ -83,8 +86,12 @@ export function AdvancedDataFrame({
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const newHeight = document.body.scrollHeight
-          console.log('Calling Streamlit.setFrameHeight() with height:', newHeight)
-          Streamlit.setFrameHeight(newHeight)
+          // 高さが実際に変わった場合のみsetFrameHeightを呼ぶ（無限ループ防止）
+          if (newHeight !== previousHeightRef.current) {
+            console.log('Height changed from', previousHeightRef.current, 'to', newHeight)
+            previousHeightRef.current = newHeight
+            Streamlit.setFrameHeight(newHeight)
+          }
         })
       })
     }
