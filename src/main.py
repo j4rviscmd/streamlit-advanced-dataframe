@@ -1,7 +1,9 @@
 import pandas as pd
 import streamlit as st
 
-from components.advanced_dataframe.my_component import advanced_dataframe
+from components.advanced_dataframe.my_component import (
+    my_component as advanced_dataframe,
+)
 
 
 def main():
