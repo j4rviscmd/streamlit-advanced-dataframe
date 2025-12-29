@@ -15,6 +15,7 @@
  */
 
 import { ColumnFilter } from '@/components/ColumnFilter'
+import { FilterStatus } from '@/components/FilterStatus'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useColumnType } from '@/hooks/useColumnType'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
@@ -49,6 +50,7 @@ export function AdvancedDataFrame({
   height,
   fullWidth = false,
   enableRowSelection = false,
+  showFilterRecords = false,
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
@@ -610,6 +612,11 @@ export function AdvancedDataFrame({
     }
   }, [selectedRowIndex, enableRowSelection])
 
+  // FilterStatus用の値を計算
+  const totalRows = data.length
+  const filteredRows = table.getRowModel().rows.length
+  const isFiltered = columnFilters.length > 0
+
   return (
     <div
       ref={tableRef}
@@ -777,9 +784,10 @@ export function AdvancedDataFrame({
                           ? 'none'
                           : `1px solid ${borderColor}`,
                         borderRight: 'none',
-                        borderBottom: isLastRow
-                          ? 'none'
-                          : `1px solid ${borderColor}`,
+                        borderBottom:
+                          isLastRow && !showFilterRecords
+                            ? 'none'
+                            : `1px solid ${borderColor}`,
                         backgroundColor: isSelectionColumn
                           ? isRowSelected
                             ? isDark
@@ -907,6 +915,15 @@ export function AdvancedDataFrame({
         >
           データがありません
         </div>
+      )}
+
+      {/* フィルタレコード数表示 */}
+      {showFilterRecords && (
+        <FilterStatus
+          totalRows={totalRows}
+          filteredRows={filteredRows}
+          isFiltered={isFiltered}
+        />
       )}
     </div>
   )

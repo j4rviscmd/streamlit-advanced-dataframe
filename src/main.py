@@ -71,12 +71,19 @@ def main():
         }
     )
 
-    st.markdown("**フィルタのデモ:** 「発売日」カラムで日付範囲フィルタを試してください。")
+    st.markdown(
+        """
+    **フィルタのデモ:** 「発売日」カラムで日付範囲フィルタを試してください。
+
+    **FilterStatus表示:** フィルタ適用時に「全8件中○件を表示」と表示されます（`show_filter_records=True`）
+    """
+    )
 
     advanced_dataframe(
         data=df_dates,
         height=400,
         enable_filters=["発売日", "価格"],
+        show_filter_records=True,
         key="date_table",
     )
 
@@ -145,8 +152,10 @@ def main():
     st.markdown(
         """
         - 「商品名」: テキストフィルタ（部分一致検索）
-        - 「メーカー」: テキストフィルタ + 複数選択（ユニーク値が10個以下）← NEW!
+        - 「メーカー」: テキストフィルタ + 複数選択（ユニーク値が10個以下）
         - 「価格」「在庫数」: 数値範囲フィルタ（最小値・最大値で絞り込み）
+
+    **FilterStatus表示:** フィルタ適用時に「全8件中○件を表示」と表示されます
         """
     )
 
@@ -154,6 +163,7 @@ def main():
         data=df_filter,
         height=400,
         enable_filters=["商品名", "メーカー", "価格", "在庫数"],
+        show_filter_records=True,
         key="filter_table",
     )
 

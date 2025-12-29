@@ -19,6 +19,7 @@ function MyComponent() {
   const height = renderData.args['height']
   const fullWidth = renderData.args['full_width']
   const enableRowSelection = renderData.args['enable_row_selection']
+  const showFilterRecords = renderData.args['show_filter_records']
 
   // StreamlitPropsに変換
   const props: StreamlitProps = {
@@ -27,6 +28,7 @@ function MyComponent() {
     height,
     fullWidth,
     enableRowSelection,
+    showFilterRecords,
   }
 
   // コンポーネントのマウント時にStreamlitにフレームの高さを通知

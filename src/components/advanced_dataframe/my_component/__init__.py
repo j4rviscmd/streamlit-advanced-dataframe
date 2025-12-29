@@ -28,6 +28,7 @@ def advanced_dataframe(
     full_width: bool = False,
     enable_row_selection: bool = False,
     enable_filters: list[str] | None = None,
+    show_filter_records: bool = False,
     key: str | None = None,
 ) -> Any:
     """
@@ -65,6 +66,9 @@ def advanced_dataframe(
         フィルタ機能を有効化するカラム名のリスト、デフォルトはNone
         指定されたカラムにフィルタアイコンが表示され、フィルタリングが可能になります
         フィルタタイプ（テキスト、数値範囲、セレクト、日付）は自動判定されます
+    show_filter_records : bool, optional
+        フィルタレコード数の表示を有効化するか、デフォルトはFalse
+        Trueの場合、フィルタ適用時に「全100件中25件を表示」のような表示が追加されます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -136,6 +140,7 @@ def advanced_dataframe(
         height=height,
         full_width=full_width,
         enable_row_selection=enable_row_selection,
+        show_filter_records=show_filter_records,
         key=key,
         default=None,
     )
