@@ -74,7 +74,10 @@ export function AdvancedDataFrame({
   // 展開状態が変わった時にフレームの高さを再計算
   useEffect(() => {
     if (expandable) {
-      Streamlit.setFrameHeight()
+      // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
+      setTimeout(() => {
+        Streamlit.setFrameHeight()
+      }, 0)
     }
   }, [expanded, expandable])
 
