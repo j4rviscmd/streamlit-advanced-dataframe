@@ -214,6 +214,27 @@ export function AdvancedDataFrame({
   }, [data, columns])
 
   /**
+   * boolean型カラムを判定
+   * カラムのすべての値（nullを除く）がbooleanの場合、そのカラムをbooleanカラムとする
+   */
+  const booleanColumns = useMemo(() => {
+    const booleanCols = new Set<string>()
+
+    columns.forEach((col) => {
+      const values = data.map((row) => row[col.id]).filter((val) => val != null)
+
+      if (values.length === 0) return
+
+      const allBoolean = values.every((val) => typeof val === 'boolean')
+      if (allBoolean) {
+        booleanCols.add(col.id)
+      }
+    })
+
+    return booleanCols
+  }, [data, columns])
+
+  /**
    * カラムタイプマップを取得（フィルタUIの種類を決定）
    */
   const columnTypeMap = useColumnType(data, columns)
@@ -257,13 +278,35 @@ export function AdvancedDataFrame({
         header: col.header,
         enableSorting: col.enableSorting ?? true,
         enableResizing: col.enableResizing ?? true,
-        // セルの表示フォーマット（数値カラムは3桁区切り）
+        // セルの表示フォーマット（数値カラムは3桁区切り、booleanはチェックボックス）
         cell: (info) => {
           const value = info.getValue()
+
+          // boolean型カラムの場合、チェックボックスで表示（読み取り専用）
+          if (booleanColumns.has(col.id) && typeof value === 'boolean') {
+            return (
+              <div className="flex items-center justify-center">
+                <Checkbox
+                  checked={value}
+                  disabled
+                  style={{
+                    borderColor: isDark
+                      ? 'rgba(250, 250, 250, 0.4)'
+                      : 'rgba(0, 0, 0, 0.3)',
+                    backgroundColor: value ? theme.primaryColor : 'transparent',
+                    opacity: 0.7,
+                    cursor: 'default',
+                  }}
+                />
+              </div>
+            )
+          }
+
           // 数値カラムの場合、ユーザーのロケールに従って3桁区切りでフォーマット
           if (numericColumns.has(col.id) && typeof value === 'number') {
             return value.toLocaleString()
           }
+
           return value as string
         },
         // 日本語対応のカスタムソート関数
@@ -1005,11 +1048,14 @@ export function AdvancedDataFrame({
                 const isGroupHeader = header.subHeaders && header.subHeaders.length > 0
                 const isHovered = hoveredHeaderId === header.id
                 const isNumeric = numericColumns.has(header.column.id)
+                const isBoolean = booleanColumns.has(header.column.id)
                 const isSelectionColumn = header.column.id === '__selection__'
                 const isExpanderColumn = header.column.id === '__expander__'
                 const isDragging = draggedColumnId === header.column.id
                 // グループヘッダ、選択カラム、展開カラムはドラッグ不可
                 const isDraggable = !isSelectionColumn && !isExpanderColumn && !isGroupHeader
+                // 数値カラムまたはboolean型カラムは中央揃え
+                const isCentered = isNumeric || isBoolean
 
                 return (
                   <th
@@ -1030,7 +1076,11 @@ export function AdvancedDataFrame({
                     onDragEnd={isDraggable ? handleColumnDragEnd : undefined}
                     className={cn(
                       'sticky top-0 z-20 px-3 text-sm font-light transition-colors duration-150 select-none',
-                      isNumeric ? 'text-right' : 'text-left',
+                      isBoolean
+                        ? 'text-center'
+                        : isNumeric
+                          ? 'text-right'
+                          : 'text-left',
                       // グループヘッダ、選択カラム、展開カラムはソート不可
                       !isGroupHeader && !isSelectionColumn && !isExpanderColumn && header.column.getCanSort()
                         ? 'cursor-pointer'
@@ -1131,8 +1181,15 @@ export function AdvancedDataFrame({
             const isFirstRow = rowIndex === 0
             const isLastRow = rowIndex === table.getRowModel().rows.length - 1
             const isRowHovered = hoveredRowIndex === rowIndex
+            // 行選択のハイライト判定: 元データのインデックスで比較
+            const rowOriginalIndex =
+              row.depth === 0
+                ? data.findIndex((item) => item === row.original)
+                : -1
             const isRowSelected =
-              enableRowSelection && selectedRowIndex === rowIndex
+              enableRowSelection &&
+              rowOriginalIndex !== -1 &&
+              selectedRowIndex === rowOriginalIndex
 
             return (
               <tr
@@ -1151,6 +1208,7 @@ export function AdvancedDataFrame({
                     cell.column.id,
                   )
                   const isNumeric = numericColumns.has(cell.column.id)
+                  const isBoolean = booleanColumns.has(cell.column.id)
                   const isSelectionColumn = cell.column.id === '__selection__'
                   const isExpanderColumn = cell.column.id === '__expander__'
                   const isMatched = isCellMatched(rowIndex, cell.column.id)
@@ -1171,7 +1229,11 @@ export function AdvancedDataFrame({
                       className={cn(
                         'relative px-3 text-sm select-none',
                         isSelectionColumn || isExpanderColumn ? '' : 'cursor-cell',
-                        isNumeric ? 'text-right' : 'text-left',
+                        isBoolean
+                          ? 'text-center'
+                          : isNumeric
+                            ? 'text-right'
+                            : 'text-left',
                       )}
                       style={{
                         width: cell.column.getSize(),
