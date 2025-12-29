@@ -2,6 +2,7 @@ import os
 from typing import Any, Hashable
 
 import pandas as pd
+import streamlit as st
 import streamlit.components.v1 as components
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
@@ -20,6 +21,37 @@ else:
     _component_func = components.declare_component(
         "advanced_dataframe", path=build_dir
     )
+
+
+def _check_max_depth(data: list[dict[Hashable, Any]], sub_rows_key: str, current_depth: int = 1) -> int:
+    """
+    階層データの最大深度を再帰的にチェックする
+
+    Parameters
+    ----------
+    data : list[dict]
+        チェック対象のデータ（records形式）
+    sub_rows_key : str
+        サブ行データのキー名
+    current_depth : int, optional
+        現在の深度（内部使用）、デフォルトは1
+
+    Returns
+    -------
+    int
+        最大深度
+    """
+    max_depth = current_depth
+
+    for row in data:
+        if sub_rows_key in row and isinstance(row[sub_rows_key], list):
+            sub_rows = row[sub_rows_key]
+            if sub_rows:
+                # サブ行の深度を再帰的にチェック
+                sub_depth = _check_max_depth(sub_rows, sub_rows_key, current_depth + 1)
+                max_depth = max(max_depth, sub_depth)
+
+    return max_depth
 
 
 def advanced_dataframe(
@@ -149,6 +181,17 @@ def advanced_dataframe(
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
     data_json: list[dict[Hashable, Any]] = data.to_dict("records")
+
+    # 展開機能が有効な場合、最大深度をチェック
+    if expandable:
+        max_depth = _check_max_depth(data_json, sub_rows_key)
+        if max_depth > 5:
+            st.warning(
+                f"⚠️ **階層の深さが{max_depth}階層あります。**  \n"
+                f"パフォーマンスとユーザビリティのため、**5階層以下を推奨**します。  \n"
+                f"深い階層はユーザーが構造を理解しづらくなる可能性があります。",
+                icon="⚠️"
+            )
 
     # カラム設定を生成
     columns_json: list[dict[str, Any]] = []
