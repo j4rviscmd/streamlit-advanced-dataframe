@@ -48,7 +48,7 @@
 | Phase 1 | 基本UI・テーブル基盤<br>（TanStack Table統合、ソート、リサイズ） | `AdvancedDataFrame.tsx`, `useStreamlitTheme.ts` |
 | Phase 2 | データ操作・検索<br>（フィルタ、グローバル検索、行選択） | `ColumnFilter.tsx`, `TableToolbar.tsx` |
 | Phase 3 | 表示カスタマイズ<br>（ヘッダ結合、カラム表示/非表示、並び替え） | `ColumnHeader.tsx`, カラムグループ対応 |
-| Phase 4 | 高度なデータ表示<br>（行展開、仮想スクロール、ページング） | `ExpandableRow.tsx`, 仮想化対応 |
+| Phase 4 | 高度なデータ表示<br>（行展開、仮想スクロール） | `ExpandableRow.tsx`, 仮想化対応 |
 | Phase 5 | 付加機能<br>（エクスポート、集計、条件付き書式） | `export.ts`, `AggregationRow.tsx` |
 
 ---
