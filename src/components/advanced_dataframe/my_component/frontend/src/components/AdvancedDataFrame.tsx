@@ -79,12 +79,14 @@ export function AdvancedDataFrame({
   const expandedCount = useMemo(() => Object.keys(expanded).length, [expanded])
 
   useEffect(() => {
-    if (expandable) {
+    if (expandable && tableRef.current) {
       console.log('Expanded count changed:', expandedCount)
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
       // setTimeoutで少し待ってからDOM高さを測定
       setTimeout(() => {
-        const newHeight = document.body.scrollHeight
+        // document.body.scrollHeightではなく、実際のテーブルコンテナの高さを測定
+        // （iframeの高さが固定されている場合、body.scrollHeightは縮小されないため）
+        const newHeight = tableRef.current?.scrollHeight || document.body.scrollHeight
         console.log('Measured height:', newHeight, 'Previous height:', previousHeightRef.current)
         // 高さが実際に変わった場合のみsetFrameHeightを呼ぶ（無限ループ防止）
         if (newHeight !== previousHeightRef.current) {
