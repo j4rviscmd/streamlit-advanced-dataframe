@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { ColumnType, RowData } from '@/types/table'
 
+import { DateRangeFilter } from './filters/DateRangeFilter'
 import { NumberRangeFilter } from './filters/NumberRangeFilter'
 import { TextFilter } from './filters/TextFilter'
 
@@ -61,6 +62,8 @@ export function ColumnFilter({
         estimatedPopoverHeight = 380 // テキスト複数選択（ScrollArea 192px + その他）
       } else if (columnType === 'number') {
         estimatedPopoverHeight = 200 // 数値範囲（入力欄2つ + その他）
+      } else if (columnType === 'date') {
+        estimatedPopoverHeight = 200 // 日付範囲（入力欄2つ + その他）
       } else if (columnType === 'text') {
         estimatedPopoverHeight = 120 // テキスト検索のみ
       }
@@ -157,6 +160,17 @@ export function ColumnFilter({
     }
   }
 
+  const setDateRangeFilterValue = (
+    value: [Date | undefined, Date | undefined],
+  ) => {
+    // 両方undefinedの場合はundefinedを設定してフィルタを解除
+    if (value[0] === undefined && value[1] === undefined) {
+      column.setFilterValue(undefined)
+    } else {
+      column.setFilterValue(value)
+    }
+  }
+
   const renderFilter = () => {
     switch (columnType) {
       case 'text':
@@ -182,7 +196,19 @@ export function ColumnFilter({
             onChange={setNumberRangeFilterValue}
           />
         )
-      // Step 3で実装予定: select, date
+      case 'date':
+        return (
+          <DateRangeFilter
+            value={
+              (filterValue as [Date | undefined, Date | undefined]) ?? [
+                undefined,
+                undefined,
+              ]
+            }
+            onChange={setDateRangeFilterValue}
+          />
+        )
+      // Step 3で実装予定: select
       default:
         return (
           <p className="text-muted-foreground text-sm">

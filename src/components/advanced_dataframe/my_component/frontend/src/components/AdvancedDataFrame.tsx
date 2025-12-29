@@ -274,7 +274,42 @@ export function AdvancedDataFrame({
               if (max !== undefined && numValue > max) return false
               return true
             }
-            // select, dateは今後実装
+            case 'date': {
+              // 日付範囲フィルタ: [start, end]
+              if (!filterValue) return true
+              const [start, end] = filterValue as [
+                Date | undefined,
+                Date | undefined,
+              ]
+              if (start === undefined && end === undefined) return true
+
+              // セル値をDateオブジェクトに変換
+              let cellDate: Date | null = null
+              if (cellValue instanceof Date) {
+                cellDate = cellValue
+              } else if (typeof cellValue === 'string') {
+                cellDate = new Date(cellValue)
+              }
+
+              if (!cellDate || isNaN(cellDate.getTime())) return false
+
+              // 開始日チェック（start <= cellDate）
+              if (start !== undefined) {
+                const startTime = new Date(start).setHours(0, 0, 0, 0)
+                const cellTime = new Date(cellDate).setHours(0, 0, 0, 0)
+                if (cellTime < startTime) return false
+              }
+
+              // 終了日チェック（cellDate <= end）
+              if (end !== undefined) {
+                const endTime = new Date(end).setHours(23, 59, 59, 999)
+                const cellTime = new Date(cellDate).setHours(0, 0, 0, 0)
+                if (cellTime > endTime) return false
+              }
+
+              return true
+            }
+            // selectは今後実装
             default:
               return true
           }
