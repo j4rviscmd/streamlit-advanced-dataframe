@@ -76,7 +76,7 @@ export function TableToolbar({
   return (
     <div
       className={cn(
-        'absolute top-2 right-2 z-30 flex items-center gap-1 transition-opacity duration-200',
+        'absolute top-2 left-2 z-30 flex items-center gap-1 transition-opacity duration-200',
         isVisible || isSearchOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
       )}
     >
