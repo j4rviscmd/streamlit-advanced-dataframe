@@ -41,20 +41,21 @@ def main():
     """
     )
 
-    # Phase 4: 行展開機能のデモ（最新機能を上に配置）
-    st.header("1. 行展開機能（Phase 4）← NEW!")
+    # Phase 4: 行展開機能 + 行選択機能のデモ（最新機能を上に配置）
+    st.header("1. 行展開 + 行選択機能（Phase 4 + Phase 2）← NEW!")
     st.markdown(
         """
-    `expandable=True`で階層データを展開・折りたたみ表示できます。
+    `expandable=True`と`enable_row_selection=True`を同時に有効にできます。
 
     **機能:**
     - ✅ 階層データの展開・折りたたみ（▶/▼ボタン）
+    - ✅ チェックボックスで行選択（Streamlitテーマカラー対応）
     - ✅ サブ行データは`subRows`キーに指定（キー名は`sub_rows_key`でカスタマイズ可能）
     - ✅ 任意の階層レベルをサポート
     """
     )
 
-    # 階層データを作成
+    # 階層データを作成（最大4階層のネスト例）
     expandable_data = pd.DataFrame(
         [
             {
@@ -62,8 +63,32 @@ def main():
                 "売上": 50000,
                 "在庫": 150,
                 "subRows": [
-                    {"カテゴリ": "野菜", "売上": 20000, "在庫": 60},
-                    {"カテゴリ": "果物", "売上": 30000, "在庫": 90},
+                    {
+                        "カテゴリ": "野菜",
+                        "売上": 20000,
+                        "在庫": 60,
+                        "subRows": [
+                            {"カテゴリ": "キャベツ", "売上": 8000, "在庫": 25},
+                            {"カテゴリ": "トマト", "売上": 12000, "在庫": 35},
+                        ],
+                    },
+                    {
+                        "カテゴリ": "果物",
+                        "売上": 30000,
+                        "在庫": 90,
+                        "subRows": [
+                            {"カテゴリ": "りんご", "売上": 15000, "在庫": 45},
+                            {
+                                "カテゴリ": "みかん",
+                                "売上": 15000,
+                                "在庫": 45,
+                                "subRows": [
+                                    {"カテゴリ": "愛媛産", "売上": 8000, "在庫": 25},
+                                    {"カテゴリ": "和歌山産", "売上": 7000, "在庫": 20},
+                                ],
+                            },
+                        ],
+                    },
                 ],
             },
             {
@@ -71,7 +96,15 @@ def main():
                 "売上": 120000,
                 "在庫": 45,
                 "subRows": [
-                    {"カテゴリ": "テレビ", "売上": 80000, "在庫": 20},
+                    {
+                        "カテゴリ": "テレビ",
+                        "売上": 80000,
+                        "在庫": 20,
+                        "subRows": [
+                            {"カテゴリ": "4K", "売上": 50000, "在庫": 12},
+                            {"カテゴリ": "8K", "売上": 30000, "在庫": 8},
+                        ],
+                    },
                     {"カテゴリ": "冷蔵庫", "売上": 40000, "在庫": 25},
                 ],
             },
@@ -89,16 +122,33 @@ def main():
 
     st.markdown(
         """
-    **行展開のデモ:** ▶ボタンをクリックしてサブ行を展開してください
+    **デモ:** 左端のチェックボックスで行選択、▶ボタンでサブ行を展開してください
+
+    **階層構造:**
+    - 食品 → 野菜 → キャベツ/トマト（3階層）
+    - 食品 → 果物 → りんご/みかん → 愛媛産/和歌山産（**4階層**）
+    - 家電 → テレビ → 4K/8K（3階層）
+
+    ※ 理論上は**無制限にネスト可能**です（TanStack Tableの仕様）
     """
     )
 
-    advanced_dataframe(
+    selected_expandable_row = advanced_dataframe(
         data=expandable_data,
         height=400,
         expandable=True,
-        key="expandable_table",
+        enable_row_selection=True,
+        key="expandable_selection_table",
     )
+
+    if selected_expandable_row is not None:
+        st.success(f"選択された行: {selected_expandable_row}")
+        st.write("選択された行のデータ:")
+        st.dataframe(
+            expandable_data.iloc[[selected_expandable_row]], use_container_width=True
+        )
+    else:
+        st.info("行が選択されていません")
 
     # Phase 3: ヘッダ結合（カラムグループ）機能のデモ
     st.header("2. ヘッダ結合（カラムグループ）機能（Phase 3）")

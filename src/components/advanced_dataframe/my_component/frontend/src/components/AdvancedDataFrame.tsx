@@ -443,14 +443,22 @@ export function AdvancedDataFrame({
         enableSorting: false,
         enableResizing: false,
         cell: ({ row }) => {
-          const isChecked = selectedRowIndex === row.index
+          // サブ行（depth > 0）の場合はチェックボックスを表示しない
+          if (row.depth > 0) {
+            return <div className="flex items-center justify-center" />
+          }
+
+          // 親行の元のDataFrameインデックスを取得
+          const originalIndex = data.findIndex((item) => item === row.original)
+          const isChecked = selectedRowIndex === originalIndex
+
           return (
             <div className="flex items-center justify-center">
               <Checkbox
                 checked={isChecked}
                 onCheckedChange={() => {
                   setSelectedRowIndex(
-                    selectedRowIndex === row.index ? null : row.index,
+                    selectedRowIndex === originalIndex ? null : originalIndex,
                   )
                 }}
                 style={{
@@ -997,9 +1005,10 @@ export function AdvancedDataFrame({
                 const isHovered = hoveredHeaderId === header.id
                 const isNumeric = numericColumns.has(header.column.id)
                 const isSelectionColumn = header.column.id === '__selection__'
+                const isExpanderColumn = header.column.id === '__expander__'
                 const isDragging = draggedColumnId === header.column.id
-                // グループヘッダまたは選択カラムはドラッグ不可
-                const isDraggable = !isSelectionColumn && !isGroupHeader
+                // グループヘッダ、選択カラム、展開カラムはドラッグ不可
+                const isDraggable = !isSelectionColumn && !isExpanderColumn && !isGroupHeader
 
                 return (
                   <th
@@ -1021,8 +1030,8 @@ export function AdvancedDataFrame({
                     className={cn(
                       'sticky top-0 z-20 px-3 text-sm font-light transition-colors duration-150 select-none',
                       isNumeric ? 'text-right' : 'text-left',
-                      // グループヘッダはソート不可
-                      !isGroupHeader && header.column.getCanSort()
+                      // グループヘッダ、選択カラム、展開カラムはソート不可
+                      !isGroupHeader && !isSelectionColumn && !isExpanderColumn && header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default',
                     )}
@@ -1042,7 +1051,7 @@ export function AdvancedDataFrame({
                       opacity: isDragging ? 0.5 : 1,
                     }}
                     onClick={
-                      !isGroupHeader
+                      !isGroupHeader && !isSelectionColumn && !isExpanderColumn
                         ? header.column.getToggleSortingHandler()
                         : undefined
                     }
