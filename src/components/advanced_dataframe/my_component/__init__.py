@@ -153,6 +153,10 @@ def advanced_dataframe(
     # カラム設定を生成
     columns_json: list[dict[str, Any]] = []
     for col in data.columns:
+        # sub_rows_keyで指定されたカラムは表示カラムから除外
+        if expandable and col == sub_rows_key:
+            continue
+
         col_config: dict[str, Any] = {
             "id": col,
             "header": col,
