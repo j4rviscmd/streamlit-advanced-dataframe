@@ -35,7 +35,16 @@ def main():
     )
 
     st.write("**標準のst.dataframe（比較用）:**")
-    st.dataframe(df_basic, height=200)
+
+    def on_select():
+        pass
+
+    st.dataframe(
+        df_basic,
+        selection_mode="single-row",
+        on_select=on_select,
+        height=200,
+    )
 
     st.write("**advanced_dataframe（Phase 1版）:**")
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
