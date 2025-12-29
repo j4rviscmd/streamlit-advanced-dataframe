@@ -254,7 +254,7 @@ def main():
     advanced_dataframe(
         data=df_dates,
         height=400,
-        enable_filters=["発売日", "価格"],
+        enable_filters=["発売日", "価格", "在庫数"],
         show_filter_records=True,
         key="date_table",
     )
