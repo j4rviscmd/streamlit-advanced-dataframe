@@ -85,10 +85,40 @@ export function AdvancedDataFrame({
     return `rgb(${newR}, ${newG}, ${newB})`
   }, [])
 
-  // ヘッダの通常時の背景色（明るくした色）
+  /**
+   * 背景色を暗くする関数
+   */
+  const darkenColor = useCallback((color: string, amount: number = 0.5) => {
+    // "#RRGGBB" 形式の色を暗くする
+    const hex = color.replace('#', '')
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+
+    // 黒に近づける（暗くする）
+    const newR = Math.round(r * (1 - amount))
+    const newG = Math.round(g * (1 - amount))
+    const newB = Math.round(b * (1 - amount))
+
+    return `rgb(${newR}, ${newG}, ${newB})`
+  }, [])
+
+  // ヘッダの通常時の背景色
   const headerNormalBgColor = useMemo(
-    () => lightenColor(secondaryBackgroundColor, isDark ? 0.15 : 0.5),
-    [secondaryBackgroundColor, isDark, lightenColor],
+    () =>
+      isDark
+        ? darkenColor(secondaryBackgroundColor, 0.3) // ダーク: 2段階暗く
+        : lightenColor(secondaryBackgroundColor, 0.5), // ライト: 維持
+    [secondaryBackgroundColor, isDark, lightenColor, darkenColor],
+  )
+
+  // ヘッダのhover時の背景色
+  const headerHoverBgColor = useMemo(
+    () =>
+      isDark
+        ? secondaryBackgroundColor // ダーク: 元の色（デフォルトより明るく）
+        : secondaryBackgroundColor, // ライト: 維持
+    [secondaryBackgroundColor, isDark],
   )
 
   // 行hover時の背景色（非常に薄い色）
@@ -466,8 +496,11 @@ export function AdvancedDataFrame({
         borderColor: borderColor,
       }}
     >
-      <table className={cn(fullWidth ? 'w-full' : 'w-fit', 'border-collapse')}>
-        <thead>
+      <table
+        className={cn(fullWidth ? 'w-full' : 'w-fit')}
+        style={{ borderCollapse: 'separate', borderSpacing: 0 }}
+      >
+        <thead className="sticky top-0 z-20">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header, headerIndex) => {
@@ -482,7 +515,7 @@ export function AdvancedDataFrame({
                   <th
                     key={header.id}
                     className={cn(
-                      'sticky top-0 z-10 px-3 text-sm font-light transition-colors duration-150 select-none',
+                      'sticky top-0 z-20 px-3 text-sm font-light transition-colors duration-150 select-none',
                       isNumeric ? 'text-right' : 'text-left',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
@@ -493,15 +526,13 @@ export function AdvancedDataFrame({
                       paddingTop: '0.4375rem',
                       paddingBottom: '0.4375rem',
                       backgroundColor: isHovered
-                        ? secondaryBackgroundColor
+                        ? headerHoverBgColor
                         : headerNormalBgColor,
                       borderTop: 'none',
                       borderLeft: isFirstColumn
                         ? 'none'
                         : `1px solid ${borderColor}`,
-                      borderRight: isLastColumn
-                        ? 'none'
-                        : `1px solid ${borderColor}`,
+                      borderRight: 'none',
                       borderBottom: `1px solid ${borderColor}`,
                     }}
                     onClick={header.column.getToggleSortingHandler()}
@@ -554,8 +585,9 @@ export function AdvancedDataFrame({
             </tr>
           ))}
         </thead>
-        <tbody>
+        <tbody className="relative z-10">
           {table.getRowModel().rows.map((row, rowIndex) => {
+            const isFirstRow = rowIndex === 0
             const isLastRow = rowIndex === table.getRowModel().rows.length - 1
             const isRowHovered = hoveredRowIndex === rowIndex
             const isRowSelected =
@@ -592,13 +624,11 @@ export function AdvancedDataFrame({
                         width: cell.column.getSize(),
                         paddingTop: '0.4375rem',
                         paddingBottom: '0.4375rem',
-                        borderTop: `1px solid ${borderColor}`,
+                        borderTop: 'none',
                         borderLeft: isFirstColumn
                           ? 'none'
                           : `1px solid ${borderColor}`,
-                        borderRight: isLastColumn
-                          ? 'none'
-                          : `1px solid ${borderColor}`,
+                        borderRight: 'none',
                         borderBottom: isLastRow
                           ? 'none'
                           : `1px solid ${borderColor}`,
