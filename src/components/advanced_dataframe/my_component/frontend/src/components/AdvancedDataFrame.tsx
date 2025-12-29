@@ -474,7 +474,7 @@ export function AdvancedDataFrame({
           return (
             <button
               onClick={row.getToggleExpandedHandler()}
-              className="px-2 py-1"
+              className="inline-flex items-center justify-center w-full h-full"
               style={{ cursor: 'pointer' }}
             >
               {row.getIsExpanded() ? '▼' : '▶'}
