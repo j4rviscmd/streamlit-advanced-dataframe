@@ -632,17 +632,25 @@ export function AdvancedDataFrame({
                         borderBottom: isLastRow
                           ? 'none'
                           : `1px solid ${borderColor}`,
-                        backgroundColor: isSelected
-                          ? isDark
-                            ? `${theme.primaryColor}20`
-                            : `${theme.primaryColor}15`
-                          : isRowSelected
+                        backgroundColor: isSelectionColumn
+                          ? isRowSelected
                             ? isDark
                               ? 'rgba(239, 68, 68, 0.15)'
                               : 'rgba(239, 68, 68, 0.1)'
                             : isRowHovered
-                              ? rowHoverBgColor
-                              : 'transparent',
+                              ? headerHoverBgColor
+                              : headerNormalBgColor
+                          : isSelected
+                            ? isDark
+                              ? `${theme.primaryColor}20`
+                              : `${theme.primaryColor}15`
+                            : isRowSelected
+                              ? isDark
+                                ? 'rgba(239, 68, 68, 0.15)'
+                                : 'rgba(239, 68, 68, 0.1)'
+                              : isRowHovered
+                                ? rowHoverBgColor
+                                : 'transparent',
                         overflow: 'visible',
                         transition: 'background-color 0.1s ease',
                       }}
