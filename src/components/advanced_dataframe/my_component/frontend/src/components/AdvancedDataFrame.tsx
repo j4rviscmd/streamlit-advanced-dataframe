@@ -1095,6 +1095,7 @@ export function AdvancedDataFrame({
                   )
                   const isNumeric = numericColumns.has(cell.column.id)
                   const isSelectionColumn = cell.column.id === '__selection__'
+                  const isExpanderColumn = cell.column.id === '__expander__'
                   const isMatched = isCellMatched(rowIndex, cell.column.id)
                   const isCurrentMatchCell = isCurrentMatch(rowIndex, cell.column.id)
 
@@ -1103,7 +1104,7 @@ export function AdvancedDataFrame({
                       key={cell.id}
                       className={cn(
                         'relative px-3 text-sm select-none',
-                        isSelectionColumn ? '' : 'cursor-cell',
+                        isSelectionColumn || isExpanderColumn ? '' : 'cursor-cell',
                         isNumeric ? 'text-right' : 'text-left',
                       )}
                       style={{
@@ -1118,7 +1119,7 @@ export function AdvancedDataFrame({
                         borderBottom: isLastRow
                           ? 'none'
                           : `1px solid ${borderColor}`,
-                        backgroundColor: isSelectionColumn
+                        backgroundColor: isSelectionColumn || isExpanderColumn
                           ? isRowSelected
                             ? isDark
                               ? 'rgba(239, 68, 68, 0.15)'
@@ -1149,13 +1150,13 @@ export function AdvancedDataFrame({
                         transition: 'background-color 0.1s ease',
                       }}
                       onMouseDown={
-                        isSelectionColumn
+                        isSelectionColumn || isExpanderColumn
                           ? undefined
                           : (e) =>
                               handleCellMouseDown(rowIndex, cell.column.id, e)
                       }
                       onMouseEnter={
-                        isSelectionColumn
+                        isSelectionColumn || isExpanderColumn
                           ? undefined
                           : () => handleCellMouseEnter(rowIndex, cell.column.id)
                       }
