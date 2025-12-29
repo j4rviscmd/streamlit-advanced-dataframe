@@ -25,6 +25,7 @@ else:
 def advanced_dataframe(
     data: pd.DataFrame,
     height: int = 600,
+    full_width: bool = False,
     key: Optional[str] = None,
 ) -> Any:
     """
@@ -45,6 +46,10 @@ def advanced_dataframe(
         表示するDataFrame
     height : int, optional
         テーブルの高さ（px）、デフォルトは600
+    full_width : bool, optional
+        テーブルを親要素の幅いっぱいに表示するか、デフォルトはFalse
+        Falseの場合、テーブルの内容に合わせて幅が調整されます（fit-content）
+        Trueの場合、親要素の幅いっぱいに表示されます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -64,7 +69,10 @@ def advanced_dataframe(
     ...     "age": [25, 30, 35],
     ...     "city": ["Tokyo", "Osaka", "Kyoto"]
     ... })
+    >>> # デフォルト（内容に合わせて幅調整: fit-content）
     >>> advanced_dataframe(data=df, height=400, key="my_table")
+    >>> # 親要素の幅いっぱいに表示する場合
+    >>> advanced_dataframe(data=df, height=400, full_width=True, key="my_table2")
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
     data_json: List[Dict[str, Any]] = data.to_dict("records")
@@ -85,6 +93,7 @@ def advanced_dataframe(
         data=data_json,
         columns=columns_json,
         height=height,
+        full_width=full_width,
         key=key,
         default=None,
     )

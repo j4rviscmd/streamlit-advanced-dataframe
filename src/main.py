@@ -62,7 +62,12 @@ def main():
         }
     )
 
-    advanced_dataframe(data=df_many_cols, height=350, key="many_cols_table")
+    advanced_dataframe(
+        data=df_many_cols,
+        height=350,
+        key="many_cols_table",
+        full_width=True,
+    )
 
     # サンプルデータ3: 数値データ
     st.header("3. 数値データのソート確認")

@@ -32,7 +32,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 /**
  * AdvancedDataFrameコンポーネント
  */
-export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
+export function AdvancedDataFrame({
+  data,
+  columns,
+  height,
+  fullWidth = false,
+}: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
 
@@ -397,7 +402,10 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
   return (
     <div
       ref={tableRef}
-      className="overflow-auto rounded-md border"
+      className={cn(
+        'overflow-auto rounded-md border',
+        fullWidth ? 'w-full' : 'w-fit',
+      )}
       style={{
         maxHeight: height ? `${height}px` : 'none',
         fontFamily: theme.font,
@@ -405,7 +413,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
         borderColor: borderColor,
       }}
     >
-      <table className="w-full border-collapse">
+      <table className={cn(fullWidth ? 'w-full' : 'w-fit', 'border-collapse')}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>

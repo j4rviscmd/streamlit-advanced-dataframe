@@ -35,6 +35,8 @@ export interface StreamlitProps {
   columns: ColumnConfig[]
   /** テーブルの高さ（px）、未指定時は自動調整 */
   height?: number
+  /** テーブルを親要素の幅いっぱいに表示するか（デフォルト: false） */
+  fullWidth?: boolean
 
   // 以下、Phase 2以降で追加予定
   // enableFilters?: boolean

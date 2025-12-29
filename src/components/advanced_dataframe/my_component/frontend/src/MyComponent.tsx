@@ -15,12 +15,14 @@ function MyComponent() {
   const data = renderData.args['data'] || []
   const columns = renderData.args['columns'] || []
   const height = renderData.args['height']
+  const fullWidth = renderData.args['full_width']
 
   // StreamlitPropsに変換
   const props: StreamlitProps = {
     data,
     columns,
     height,
+    fullWidth,
   }
 
   // コンポーネントのマウント時にStreamlitにフレームの高さを通知
