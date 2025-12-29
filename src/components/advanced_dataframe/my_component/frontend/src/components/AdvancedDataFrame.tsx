@@ -9,6 +9,7 @@
  * - Streamlitテーマ対応
  */
 
+import { Checkbox } from '@/components/ui/checkbox'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
 import { cn } from '@/lib/utils'
 import {
@@ -28,6 +29,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Streamlit } from 'streamlit-component-lib'
 
 /**
  * AdvancedDataFrameコンポーネント
@@ -37,12 +39,16 @@ export function AdvancedDataFrame({
   columns,
   height,
   fullWidth = false,
+  enableRowSelection = false,
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
 
   // ソート状態管理
   const [sorting, setSorting] = useState<SortingState>([])
+
+  // 行選択状態管理（選択された行のインデックス、単一選択のみ）
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
 
   // カラムリサイズモード
   const [columnResizeMode] = useState<ColumnResizeMode>('onChange')
@@ -114,50 +120,81 @@ export function AdvancedDataFrame({
 
   // カラム定義をTanStack Table形式に変換
   const columnHelper = createColumnHelper<RowData>()
-  const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(
-    () =>
-      columns.map((col) =>
-        columnHelper.accessor(col.id, {
-          id: col.id,
-          header: col.header,
-          enableSorting: col.enableSorting ?? true,
-          enableResizing: col.enableResizing ?? true,
-          // セルの表示フォーマット（数値カラムは3桁区切り）
-          cell: (info) => {
-            const value = info.getValue()
-            // 数値カラムの場合、ユーザーのロケールに従って3桁区切りでフォーマット
-            if (numericColumns.has(col.id) && typeof value === 'number') {
-              return value.toLocaleString()
-            }
-            return value as string
-          },
-          // 日本語対応のカスタムソート関数
-          sortingFn: (rowA, rowB, columnId) => {
-            const a = rowA.getValue(columnId)
-            const b = rowB.getValue(columnId)
+  const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(() => {
+    const dataColumns = columns.map((col) =>
+      columnHelper.accessor(col.id, {
+        id: col.id,
+        header: col.header,
+        enableSorting: col.enableSorting ?? true,
+        enableResizing: col.enableResizing ?? true,
+        // セルの表示フォーマット（数値カラムは3桁区切り）
+        cell: (info) => {
+          const value = info.getValue()
+          // 数値カラムの場合、ユーザーのロケールに従って3桁区切りでフォーマット
+          if (numericColumns.has(col.id) && typeof value === 'number') {
+            return value.toLocaleString()
+          }
+          return value as string
+        },
+        // 日本語対応のカスタムソート関数
+        sortingFn: (rowA, rowB, columnId) => {
+          const a = rowA.getValue(columnId)
+          const b = rowB.getValue(columnId)
 
-            // nullやundefinedの処理
-            if (a == null && b == null) return 0
-            if (a == null) return 1
-            if (b == null) return -1
+          // nullやundefinedの処理
+          if (a == null && b == null) return 0
+          if (a == null) return 1
+          if (b == null) return -1
 
-            // 文字列の場合は日本語対応のlocaleCompareを使用
-            if (typeof a === 'string' && typeof b === 'string') {
-              return a.localeCompare(b, 'ja', { sensitivity: 'base' })
-            }
+          // 文字列の場合は日本語対応のlocaleCompareを使用
+          if (typeof a === 'string' && typeof b === 'string') {
+            return a.localeCompare(b, 'ja', { sensitivity: 'base' })
+          }
 
-            // 数値の場合は通常の比較
-            if (typeof a === 'number' && typeof b === 'number') {
-              return a - b
-            }
+          // 数値の場合は通常の比較
+          if (typeof a === 'number' && typeof b === 'number') {
+            return a - b
+          }
 
-            // その他の型はデフォルトの比較
-            return a < b ? -1 : a > b ? 1 : 0
-          },
-        }),
-      ),
-    [columns, columnHelper, numericColumns],
-  )
+          // その他の型はデフォルトの比較
+          return a < b ? -1 : a > b ? 1 : 0
+        },
+      }),
+    )
+
+    // 行選択機能が有効な場合、チェックボックスカラムを先頭に追加
+    if (enableRowSelection) {
+      const selectionColumn: ColumnDef<RowData, unknown> = {
+        id: '__selection__',
+        header: '',
+        size: 50,
+        enableSorting: false,
+        enableResizing: false,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-center">
+            <Checkbox
+              checked={selectedRowIndex === row.index}
+              onCheckedChange={() => {
+                setSelectedRowIndex(
+                  selectedRowIndex === row.index ? null : row.index,
+                )
+              }}
+              className="data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
+            />
+          </div>
+        ),
+      }
+      return [selectionColumn, ...dataColumns]
+    }
+
+    return dataColumns
+  }, [
+    columns,
+    columnHelper,
+    numericColumns,
+    enableRowSelection,
+    selectedRowIndex,
+  ])
 
   // TanStack Tableインスタンス作成
   const table = useReactTable({
@@ -408,6 +445,13 @@ export function AdvancedDataFrame({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [selectedCells, table, columnIds])
 
+  // 行選択状態が変更されたらStreamlitへ通知
+  useEffect(() => {
+    if (enableRowSelection) {
+      Streamlit.setComponentValue(selectedRowIndex)
+    }
+  }, [selectedRowIndex, enableRowSelection])
+
   return (
     <div
       ref={tableRef}
@@ -514,6 +558,8 @@ export function AdvancedDataFrame({
           {table.getRowModel().rows.map((row, rowIndex) => {
             const isLastRow = rowIndex === table.getRowModel().rows.length - 1
             const isRowHovered = hoveredRowIndex === rowIndex
+            const isRowSelected =
+              enableRowSelection && selectedRowIndex === rowIndex
 
             return (
               <tr
@@ -532,12 +578,14 @@ export function AdvancedDataFrame({
                     cell.column.id,
                   )
                   const isNumeric = numericColumns.has(cell.column.id)
+                  const isSelectionColumn = cell.column.id === '__selection__'
 
                   return (
                     <td
                       key={cell.id}
                       className={cn(
-                        'relative cursor-cell px-3 text-sm select-none',
+                        'relative px-3 text-sm select-none',
+                        isSelectionColumn ? '' : 'cursor-cell',
                         isNumeric ? 'text-right' : 'text-left',
                       )}
                       style={{
@@ -558,17 +606,26 @@ export function AdvancedDataFrame({
                           ? isDark
                             ? `${theme.primaryColor}20`
                             : `${theme.primaryColor}15`
-                          : isRowHovered
-                            ? rowHoverBgColor
-                            : 'transparent',
+                          : isRowSelected
+                            ? isDark
+                              ? 'rgba(239, 68, 68, 0.15)'
+                              : 'rgba(239, 68, 68, 0.1)'
+                            : isRowHovered
+                              ? rowHoverBgColor
+                              : 'transparent',
                         overflow: 'visible',
                         transition: 'background-color 0.1s ease',
                       }}
-                      onMouseDown={(e) =>
-                        handleCellMouseDown(rowIndex, cell.column.id, e)
+                      onMouseDown={
+                        isSelectionColumn
+                          ? undefined
+                          : (e) =>
+                              handleCellMouseDown(rowIndex, cell.column.id, e)
                       }
-                      onMouseEnter={() =>
-                        handleCellMouseEnter(rowIndex, cell.column.id)
+                      onMouseEnter={
+                        isSelectionColumn
+                          ? undefined
+                          : () => handleCellMouseEnter(rowIndex, cell.column.id)
                       }
                     >
                       {/* 上の境界線（横線） - セル間ボーダーを覆うよう拡張 */}

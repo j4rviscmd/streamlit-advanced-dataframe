@@ -25,7 +25,7 @@ export interface ColumnConfig {
 }
 
 /**
- * Streamlitから受け取るProps（Phase 1版）
+ * Streamlitから受け取るProps
  * 各フェーズで段階的に拡張される
  */
 export interface StreamlitProps {
@@ -37,14 +37,14 @@ export interface StreamlitProps {
   height?: number
   /** テーブルを親要素の幅いっぱいに表示するか（デフォルト: false） */
   fullWidth?: boolean
+  /** 行選択機能を有効化するか（デフォルト: false）Phase 2で追加 */
+  enableRowSelection?: boolean
 
-  // 以下、Phase 2以降で追加予定
+  // 以下、Phase 3以降で追加予定
   // enableFilters?: boolean
   // enableGlobalSearch?: boolean
-  // enableRowSelection?: boolean
   // columnGroups?: ColumnGroup[]
   // expandable?: boolean
-  // pageSize?: number
   // enableExport?: boolean
 }
 

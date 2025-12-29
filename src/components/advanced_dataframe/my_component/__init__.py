@@ -26,19 +26,25 @@ def advanced_dataframe(
     data: pd.DataFrame,
     height: int = 600,
     full_width: bool = False,
+    enable_row_selection: bool = False,
     key: str | None = None,
 ) -> Any:
     """
-    高機能DataFrameコンポーネント（Phase 1版）
+    高機能DataFrameコンポーネント
 
     Streamlitの標準st.dataframeを拡張した高機能テーブルコンポーネント。
-    TanStack Tableを使用し、ソート、リサイズなどの機能を提供します。
+    TanStack Tableを使用し、ソート、リサイズ、行選択などの機能を提供します。
 
     Phase 1機能:
     - 基本的なデータ表示
     - カラムソート（単一カラム、昇順/降順）
     - カラム幅のリサイズ
     - Streamlitテーマ対応（ライト/ダーク）
+    - セル選択とクリップボードコピー
+    - 数値カラムの自動検出と右寄せ、3桁区切り表示
+
+    Phase 2機能:
+    - 行選択（単一行選択）
 
     Parameters
     ----------
@@ -50,13 +56,17 @@ def advanced_dataframe(
         テーブルを親要素の幅いっぱいに表示するか、デフォルトはFalse
         Falseの場合、テーブルの内容に合わせて幅が調整されます（fit-content）
         Trueの場合、親要素の幅いっぱいに表示されます
+    enable_row_selection : bool, optional
+        行選択機能を有効化するか、デフォルトはFalse
+        Trueの場合、左端にチェックボックスが表示され、行を選択できます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
     Returns
     -------
-    Any
-        コンポーネントの戻り値（Phase 1では使用しない）
+    int | None
+        選択された行のインデックス（0始まり）
+        行選択機能が無効、または選択されていない場合はNone
 
     Examples
     --------
@@ -69,10 +79,19 @@ def advanced_dataframe(
     ...     "age": [25, 30, 35],
     ...     "city": ["Tokyo", "Osaka", "Kyoto"]
     ... })
-    >>> # デフォルト（内容に合わせて幅調整: fit-content）
+    >>> # 基本的な使い方
     >>> advanced_dataframe(data=df, height=400, key="my_table")
-    >>> # 親要素の幅いっぱいに表示する場合
-    >>> advanced_dataframe(data=df, height=400, full_width=True, key="my_table2")
+    >>>
+    >>> # 行選択機能を有効化
+    >>> selected_row = advanced_dataframe(
+    ...     data=df,
+    ...     height=400,
+    ...     enable_row_selection=True,
+    ...     key="selectable_table"
+    ... )
+    >>> if selected_row is not None:
+    ...     st.write(f"選択された行: {selected_row}")
+    ...     st.write(df.iloc[selected_row])
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
     data_json: list[dict[Hashable, Any]] = data.to_dict("records")
@@ -94,6 +113,7 @@ def advanced_dataframe(
         columns=columns_json,
         height=height,
         full_width=full_width,
+        enable_row_selection=enable_row_selection,
         key=key,
         default=None,
     )

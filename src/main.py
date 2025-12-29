@@ -7,19 +7,24 @@ from components.advanced_dataframe.my_component import (
 
 
 def main():
-    TITLE = "Advanced DataFrame - Phase 1 Demo"
+    TITLE = "Advanced DataFrame - Phase 1 & 2 Demo"
     st.set_page_config(page_title=TITLE, layout="wide")
     st.title(TITLE)
 
     st.markdown(
         """
-    ## Phase 1機能デモ
+    ## 実装済み機能
 
-    実装済み機能:
+    ### Phase 1:
     - ✅ 基本的なデータ表示
     - ✅ カラムソート（ヘッダをクリック）
     - ✅ カラム幅のリサイズ（ヘッダの右端をドラッグ）
     - ✅ Streamlitテーマ対応
+    - ✅ セル選択とクリップボードコピー
+    - ✅ 数値カラムの自動検出と右寄せ、3桁区切り表示
+
+    ### Phase 2:
+    - ✅ 行選択（単一行選択）
     """
     )
 
@@ -110,6 +115,45 @@ def main():
     - Streamlitのテーマ設定（Settings > Theme）を変更すると、テーブルの色も自動的に変わります
     """
     )
+
+    # Phase 2: 行選択機能のデモ
+    st.header("4. 行選択機能（Phase 2）")
+    df_selection = pd.DataFrame(
+        {
+            "商品名": [
+                "ノートPC",
+                "マウス",
+                "キーボード",
+                "モニター",
+                "ヘッドセット",
+            ],
+            "価格": [120000, 3000, 8000, 45000, 12000],
+            "在庫数": [15, 50, 30, 20, 25],
+            "カテゴリ": [
+                "PC",
+                "周辺機器",
+                "周辺機器",
+                "ディスプレイ",
+                "オーディオ",
+            ],
+        }
+    )
+
+    st.markdown("左端のチェックボックスをクリックして行を選択できます。")
+
+    selected_row = advanced_dataframe(
+        data=df_selection,
+        height=300,
+        enable_row_selection=True,
+        key="selection_table",
+    )
+
+    if selected_row is not None:
+        st.success(f"選択された行: {selected_row}")
+        st.write("選択された行のデータ:")
+        st.dataframe(df_selection.iloc[[selected_row]], use_container_width=True)
+    else:
+        st.info("行が選択されていません")
 
 
 if __name__ == "__main__":
