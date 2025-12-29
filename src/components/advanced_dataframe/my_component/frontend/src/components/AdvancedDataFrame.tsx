@@ -82,18 +82,19 @@ export function AdvancedDataFrame({
     if (expandable) {
       console.log('Expanded count changed:', expandedCount)
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
-      // requestAnimationFrameで2回待つことで、レンダリングとレイアウトが完了することを保証
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const newHeight = document.body.scrollHeight
-          // 高さが実際に変わった場合のみsetFrameHeightを呼ぶ（無限ループ防止）
-          if (newHeight !== previousHeightRef.current) {
-            console.log('Height changed from', previousHeightRef.current, 'to', newHeight)
-            previousHeightRef.current = newHeight
-            Streamlit.setFrameHeight(newHeight)
-          }
-        })
-      })
+      // setTimeoutで少し待ってからDOM高さを測定
+      setTimeout(() => {
+        const newHeight = document.body.scrollHeight
+        console.log('Measured height:', newHeight, 'Previous height:', previousHeightRef.current)
+        // 高さが実際に変わった場合のみsetFrameHeightを呼ぶ（無限ループ防止）
+        if (newHeight !== previousHeightRef.current) {
+          console.log('Height changed from', previousHeightRef.current, 'to', newHeight)
+          previousHeightRef.current = newHeight
+          Streamlit.setFrameHeight(newHeight)
+        } else {
+          console.log('Height did not change, skipping setFrameHeight')
+        }
+      }, 100)
     }
   }, [expandedCount, expandable])
 
