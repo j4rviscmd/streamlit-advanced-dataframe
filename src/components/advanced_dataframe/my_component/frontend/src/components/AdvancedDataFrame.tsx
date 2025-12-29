@@ -122,6 +122,15 @@ export function AdvancedDataFrame({
           header: col.header,
           enableSorting: col.enableSorting ?? true,
           enableResizing: col.enableResizing ?? true,
+          // セルの表示フォーマット（数値カラムは3桁区切り）
+          cell: (info) => {
+            const value = info.getValue()
+            // 数値カラムの場合、ユーザーのロケールに従って3桁区切りでフォーマット
+            if (numericColumns.has(col.id) && typeof value === 'number') {
+              return value.toLocaleString()
+            }
+            return value as string
+          },
           // 日本語対応のカスタムソート関数
           sortingFn: (rowA, rowB, columnId) => {
             const a = rowA.getValue(columnId)
@@ -147,7 +156,7 @@ export function AdvancedDataFrame({
           },
         }),
       ),
-    [columns, columnHelper],
+    [columns, columnHelper, numericColumns],
   )
 
   // TanStack Tableインスタンス作成
