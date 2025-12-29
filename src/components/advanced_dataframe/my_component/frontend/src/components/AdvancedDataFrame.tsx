@@ -74,11 +74,14 @@ export function AdvancedDataFrame({
   // 展開状態が変わった時にフレームの高さを再計算
   useEffect(() => {
     if (expandable) {
+      console.log('Expanded state changed:', expanded)
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
       // requestAnimationFrameで2回待つことで、レンダリングとレイアウトが完了することを保証
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          Streamlit.setFrameHeight()
+          const newHeight = document.body.scrollHeight
+          console.log('Calling Streamlit.setFrameHeight() with height:', newHeight)
+          Streamlit.setFrameHeight(newHeight)
         })
       })
     }
