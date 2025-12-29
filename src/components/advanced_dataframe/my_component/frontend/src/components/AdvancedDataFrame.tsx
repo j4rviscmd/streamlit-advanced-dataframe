@@ -86,6 +86,27 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
     [isDark],
   )
 
+  /**
+   * 数値カラムを判定
+   * カラムのすべての値（nullを除く）が数値の場合、そのカラムを数値カラムとする
+   */
+  const numericColumns = useMemo(() => {
+    const numericCols = new Set<string>()
+
+    columns.forEach((col) => {
+      const values = data.map((row) => row[col.id]).filter((val) => val != null)
+
+      if (values.length === 0) return
+
+      const allNumeric = values.every((val) => typeof val === 'number')
+      if (allNumeric) {
+        numericCols.add(col.id)
+      }
+    })
+
+    return numericCols
+  }, [data, columns])
+
   // カラム定義をTanStack Table形式に変換
   const columnHelper = createColumnHelper<RowData>()
   const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(
@@ -394,12 +415,14 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                   headerIndex === headerGroup.headers.length - 1
 
                 const isHovered = hoveredHeaderId === header.id
+                const isNumeric = numericColumns.has(header.column.id)
 
                 return (
                   <th
                     key={header.id}
                     className={cn(
-                      'sticky top-0 z-10 px-3 py-2 text-left text-sm font-light transition-colors duration-150 select-none',
+                      'sticky top-0 z-10 px-3 py-2 text-sm font-light transition-colors duration-150 select-none',
+                      isNumeric ? 'text-right' : 'text-left',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default',
@@ -489,11 +512,15 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     rowIndex,
                     cell.column.id,
                   )
+                  const isNumeric = numericColumns.has(cell.column.id)
 
                   return (
                     <td
                       key={cell.id}
-                      className="relative cursor-cell px-3 py-2 text-sm select-none"
+                      className={cn(
+                        'relative cursor-cell px-3 py-2 text-sm select-none',
+                        isNumeric ? 'text-right' : 'text-left',
+                      )}
                       style={{
                         width: cell.column.getSize(),
                         borderTop: `1px solid ${borderColor}`,
