@@ -785,7 +785,7 @@ export function AdvancedDataFrame({
                           : `1px solid ${borderColor}`,
                         borderRight: 'none',
                         borderBottom:
-                          isLastRow && !showFilterRecords
+                          isLastRow && (!showFilterRecords || !isFiltered)
                             ? 'none'
                             : `1px solid ${borderColor}`,
                         backgroundColor: isSelectionColumn
