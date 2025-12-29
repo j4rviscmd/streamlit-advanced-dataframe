@@ -29,6 +29,7 @@ def advanced_dataframe(
     enable_row_selection: bool = False,
     enable_filters: list[str] | None = None,
     show_filter_records: bool = False,
+    enable_global_search: bool = True,
     key: str | None = None,
 ) -> Any:
     """
@@ -48,6 +49,7 @@ def advanced_dataframe(
     Phase 2機能:
     - 行選択（単一行選択）
     - カラムフィルタ（テキスト、数値範囲、セレクト、日付範囲）
+    - グローバル検索（全カラム横断検索、一致箇所ハイライト）
 
     Parameters
     ----------
@@ -69,6 +71,10 @@ def advanced_dataframe(
     show_filter_records : bool, optional
         フィルタレコード数の表示を有効化するか、デフォルトはFalse
         Trueの場合、フィルタ適用時に「全100件中25件を表示」のような表示が追加されます
+    enable_global_search : bool, optional
+        グローバル検索機能を有効化するか、デフォルトはTrue
+        Trueの場合、テーブル右上に検索アイコンが表示され、全カラムを対象とした検索が可能になります
+        検索クエリに一致するセルは赤系背景でハイライト表示されます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -141,6 +147,7 @@ def advanced_dataframe(
         full_width=full_width,
         enable_row_selection=enable_row_selection,
         show_filter_records=show_filter_records,
+        enable_global_search=enable_global_search,
         key=key,
         default=None,
     )

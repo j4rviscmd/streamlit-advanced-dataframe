@@ -28,12 +28,52 @@ def main():
     - ✅ カラムフィルタ（テキスト検索）
     - ✅ カラムフィルタ（テキスト + 複数選択）
     - ✅ カラムフィルタ（数値範囲）
-    - ✅ カラムフィルタ（日付範囲） ← NEW!
+    - ✅ カラムフィルタ（日付範囲）
+    - ✅ グローバル検索（全カラム横断検索、一致箇所ハイライト） ← NEW!
     """
     )
 
-    # Phase 2: 日付フィルタ機能のデモ（最新機能を上に配置）
-    st.header("1. 日付フィルタ機能（Phase 2）← NEW!")
+    # Phase 2: グローバル検索機能のデモ（最新機能を上に配置）
+    st.header("1. グローバル検索機能（Phase 2）← NEW!")
+    st.markdown(
+        """
+    テーブルにマウスをホバーすると、右上に検索アイコン（🔍）が表示されます。
+    クリックすると検索窓が開き、全カラムを対象とした検索が可能です。
+
+    **機能:**
+    - ✅ 全カラム横断検索（部分一致）
+    - ✅ 一致箇所の赤系ハイライト表示
+    - ✅ 一致件数のカウント表示（例: "1 of 2 results"）
+    - ✅ ↑↓ボタンで次/前の一致箇所へジャンプ
+    - ✅ ×ボタンで検索をクリア・閉じる
+    - ✅ Escキーで検索窓を閉じる
+    """
+    )
+
+    df_search = pd.DataFrame(
+        {
+            "商品名": ["iPhone 15", "Galaxy S24", "Pixel 8", "Xperia 5", "AQUOS sense8"],
+            "メーカー": ["Apple", "Samsung", "Google", "Sony", "Sharp"],
+            "価格": [159800, 139800, 128000, 114800, 39800],
+            "カテゴリ": ["スマートフォン", "スマートフォン", "スマートフォン", "スマートフォン", "スマートフォン"],
+        }
+    )
+
+    st.markdown(
+        """
+    **検索のデモ:** テーブルをホバーして右上の🔍アイコンをクリックし、「Apple」「800」などで検索してください。
+    """
+    )
+
+    advanced_dataframe(
+        data=df_search,
+        height=300,
+        enable_global_search=True,  # デフォルトでTrueなので省略可能
+        key="search_table",
+    )
+
+    # Phase 2: 日付フィルタ機能のデモ
+    st.header("2. 日付フィルタ機能（Phase 2）")
     st.markdown(
         """
     日付カラムのフィルタアイコン（🔍）をクリックして、日付範囲でフィルタできます。
@@ -88,7 +128,7 @@ def main():
     )
 
     # Phase 2: カラムフィルタ機能のデモ
-    st.header("2. カラムフィルタ機能（Phase 2）")
+    st.header("3. カラムフィルタ機能（Phase 2）")
     st.markdown(
         """
     ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
@@ -168,7 +208,7 @@ def main():
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("3. 行選択機能（Phase 2）")
+    st.header("4. 行選択機能（Phase 2）")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -209,7 +249,7 @@ def main():
         st.info("行が選択されていません")
 
     # サンプルデータ1: 基本的なデータ
-    st.header("4. 基本的なテーブル表示")
+    st.header("5. 基本的なテーブル表示")
     df_basic = pd.DataFrame(
         {
             "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
@@ -235,7 +275,7 @@ def main():
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
-    st.header("5. 多数のカラムを持つテーブル")
+    st.header("6. 多数のカラムを持つテーブル")
     df_many_cols = pd.DataFrame(
         {
             "ID": range(1, 11),
@@ -266,7 +306,7 @@ def main():
     )
 
     # サンプルデータ3: 数値データ
-    st.header("6. 数値データのソート確認")
+    st.header("7. 数値データのソート確認")
     df_numbers = pd.DataFrame(
         {
             "整数": [10, 5, 8, 3, 15, 1, 12],

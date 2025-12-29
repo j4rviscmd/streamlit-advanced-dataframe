@@ -16,6 +16,7 @@
 
 import { ColumnFilter } from '@/components/ColumnFilter'
 import { FilterStatus } from '@/components/FilterStatus'
+import { TableToolbar } from '@/components/TableToolbar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useColumnType } from '@/hooks/useColumnType'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
@@ -51,6 +52,7 @@ export function AdvancedDataFrame({
   fullWidth = false,
   enableRowSelection = false,
   showFilterRecords = false,
+  enableGlobalSearch = true,
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
@@ -80,6 +82,15 @@ export function AdvancedDataFrame({
 
   // 行のhover状態管理
   const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null)
+
+  // テーブル全体のhover状態管理（ツールバー表示用）
+  const [isTableHovered, setIsTableHovered] = useState(false)
+
+  // グローバル検索クエリ
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // 現在の一致インデックス（1始まり、0は一致なし）
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
 
   /**
    * 背景色を明るくする関数
@@ -387,6 +398,89 @@ export function AdvancedDataFrame({
   )
 
   /**
+   * グローバル検索の一致箇所を計算
+   * 検索クエリに一致するセルのリスト（行インデックスとカラムIDの組み合わせ）
+   */
+  const searchMatches = useMemo(() => {
+    if (!searchQuery.trim()) return []
+
+    const matches: CellPosition[] = []
+    const query = searchQuery.toLowerCase()
+
+    table.getRowModel().rows.forEach((row, rowIndex) => {
+      columnIds.forEach((columnId) => {
+        // 選択カラムはスキップ
+        if (columnId === '__selection__') return
+
+        const cellValue = row.getValue(columnId)
+        const cellText = String(cellValue ?? '').toLowerCase()
+
+        if (cellText.includes(query)) {
+          matches.push({ rowIndex, columnId })
+        }
+      })
+    })
+
+    return matches
+  }, [searchQuery, table, columnIds])
+
+  // 総一致件数
+  const totalMatches = searchMatches.length
+
+  // 検索クエリが変更されたら、一致インデックスをリセット
+  useEffect(() => {
+    if (totalMatches > 0) {
+      setCurrentMatchIndex(1)
+    } else {
+      setCurrentMatchIndex(0)
+    }
+  }, [searchQuery, totalMatches])
+
+  /**
+   * 次の一致箇所へジャンプ
+   */
+  const handleNextMatch = useCallback(() => {
+    if (totalMatches === 0) return
+    setCurrentMatchIndex((prev) => (prev >= totalMatches ? 1 : prev + 1))
+  }, [totalMatches])
+
+  /**
+   * 前の一致箇所へジャンプ
+   */
+  const handlePrevMatch = useCallback(() => {
+    if (totalMatches === 0) return
+    setCurrentMatchIndex((prev) => (prev <= 1 ? totalMatches : prev - 1))
+  }, [totalMatches])
+
+  /**
+   * セルが検索一致箇所かどうかをチェック
+   */
+  const isCellMatched = useCallback(
+    (rowIndex: number, columnId: string): boolean => {
+      if (!searchQuery.trim()) return false
+      return searchMatches.some(
+        (match) => match.rowIndex === rowIndex && match.columnId === columnId,
+      )
+    },
+    [searchQuery, searchMatches],
+  )
+
+  /**
+   * セルが現在の一致箇所かどうかをチェック
+   */
+  const isCurrentMatch = useCallback(
+    (rowIndex: number, columnId: string): boolean => {
+      if (currentMatchIndex === 0 || totalMatches === 0) return false
+      const currentMatch = searchMatches[currentMatchIndex - 1]
+      return (
+        currentMatch?.rowIndex === rowIndex &&
+        currentMatch?.columnId === columnId
+      )
+    },
+    [currentMatchIndex, totalMatches, searchMatches],
+  )
+
+  /**
    * セルが選択範囲に含まれるかチェック
    */
   const isCellSelected = useCallback(
@@ -622,7 +716,7 @@ export function AdvancedDataFrame({
       <div
         ref={tableRef}
         className={cn(
-          'overflow-auto rounded-md border',
+          'relative overflow-auto rounded-md border',
           fullWidth ? 'w-full' : 'w-fit',
         )}
         style={{
@@ -631,7 +725,21 @@ export function AdvancedDataFrame({
           color: textColor,
           borderColor: borderColor,
         }}
+        onMouseEnter={() => setIsTableHovered(true)}
+        onMouseLeave={() => setIsTableHovered(false)}
       >
+      {/* テーブルツールバー（検索機能など） */}
+      {enableGlobalSearch && (
+        <TableToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          currentMatchIndex={currentMatchIndex}
+          totalMatches={totalMatches}
+          onNextMatch={handleNextMatch}
+          onPrevMatch={handlePrevMatch}
+          isVisible={isTableHovered}
+        />
+      )}
       <table
         className={cn(fullWidth ? 'w-full' : 'w-fit')}
         style={{ borderCollapse: 'separate', borderSpacing: 0 }}
@@ -767,6 +875,8 @@ export function AdvancedDataFrame({
                   )
                   const isNumeric = numericColumns.has(cell.column.id)
                   const isSelectionColumn = cell.column.id === '__selection__'
+                  const isMatched = isCellMatched(rowIndex, cell.column.id)
+                  const isCurrentMatchCell = isCurrentMatch(rowIndex, cell.column.id)
 
                   return (
                     <td
@@ -796,17 +906,25 @@ export function AdvancedDataFrame({
                             : isRowHovered
                               ? headerHoverBgColor
                               : headerNormalBgColor
-                          : isSelected
+                          : isCurrentMatchCell
                             ? isDark
-                              ? `${theme.primaryColor}20`
-                              : `${theme.primaryColor}15`
-                            : isRowSelected
+                              ? 'rgba(239, 68, 68, 0.3)'
+                              : 'rgba(239, 68, 68, 0.25)'
+                            : isMatched
                               ? isDark
                                 ? 'rgba(239, 68, 68, 0.15)'
                                 : 'rgba(239, 68, 68, 0.1)'
-                              : isRowHovered
-                                ? rowHoverBgColor
-                                : 'transparent',
+                              : isSelected
+                                ? isDark
+                                  ? `${theme.primaryColor}20`
+                                  : `${theme.primaryColor}15`
+                                : isRowSelected
+                                  ? isDark
+                                    ? 'rgba(239, 68, 68, 0.15)'
+                                    : 'rgba(239, 68, 68, 0.1)'
+                                  : isRowHovered
+                                    ? rowHoverBgColor
+                                    : 'transparent',
                         overflow: 'visible',
                         transition: 'background-color 0.1s ease',
                       }}

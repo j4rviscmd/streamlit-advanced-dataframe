@@ -74,10 +74,10 @@ export interface StreamlitProps {
   enableRowSelection?: boolean
   /** フィルタレコード数の表示を有効化するか（デフォルト: false）Phase 2で追加 */
   showFilterRecords?: boolean
+  /** グローバル検索機能を有効化するか（デフォルト: true）Phase 2で追加 */
+  enableGlobalSearch?: boolean
 
   // 以下、Phase 3以降で追加予定
-  // enableFilters?: boolean
-  // enableGlobalSearch?: boolean
   // columnGroups?: ColumnGroup[]
   // expandable?: boolean
   // enableExport?: boolean
