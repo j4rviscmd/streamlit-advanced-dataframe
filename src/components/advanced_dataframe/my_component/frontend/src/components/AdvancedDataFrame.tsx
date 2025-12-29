@@ -1155,6 +1155,15 @@ export function AdvancedDataFrame({
                   const isMatched = isCellMatched(rowIndex, cell.column.id)
                   const isCurrentMatchCell = isCurrentMatch(rowIndex, cell.column.id)
 
+                  // 最初のデータカラムかどうか（ツリー線表示用）
+                  const specialColumnsCount =
+                    (enableRowSelection ? 1 : 0) + (expandable ? 1 : 0)
+                  const isFirstDataColumn = cellIndex === specialColumnsCount
+
+                  // ツリー線の深さとインデント
+                  const depth = row.depth
+                  const indentSize = 24 // px per level
+
                   return (
                     <td
                       key={cell.id}
@@ -1286,9 +1295,22 @@ export function AdvancedDataFrame({
                         />
                       )}
                       <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
+                        {isFirstDataColumn && depth > 0 ? (
+                          <div
+                            style={{
+                              paddingLeft: `${depth * indentSize}px`,
+                            }}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </div>
+                        ) : (
+                          flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )
                         )}
                       </div>
                     </td>
