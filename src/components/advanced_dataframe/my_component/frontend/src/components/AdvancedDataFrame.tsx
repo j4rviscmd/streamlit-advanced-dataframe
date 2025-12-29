@@ -52,7 +52,7 @@ export function AdvancedDataFrame({
   fullWidth = false,
   enableRowSelection = false,
   showFilterRecords = false,
-  enableGlobalSearch = true,
+  visibleColumns,
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
@@ -97,6 +97,9 @@ export function AdvancedDataFrame({
 
   // ドラッグ中のカラムID
   const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null)
+
+  // カラムの可視性状態管理（Phase 3）
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({})
 
   /**
    * 背景色を明るくする関数
@@ -378,10 +381,12 @@ export function AdvancedDataFrame({
       sorting,
       columnFilters,
       columnOrder,
+      columnVisibility,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnOrderChange: setColumnOrder,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -412,6 +417,23 @@ export function AdvancedDataFrame({
       setColumnOrder(initialOrder)
     }
   }, [tableColumns, columnOrder.length])
+
+  // カラム可視性の初期化（visibleColumnsが指定されている場合）
+  useEffect(() => {
+    if (visibleColumns && visibleColumns.length > 0) {
+      const visibility: Record<string, boolean> = {}
+      tableColumns.forEach((col) => {
+        const colId = col.id as string
+        // 選択カラムは常に表示
+        if (colId === '__selection__') {
+          visibility[colId] = true
+        } else {
+          visibility[colId] = visibleColumns.includes(colId)
+        }
+      })
+      setColumnVisibility(visibility)
+    }
+  }, [visibleColumns, tableColumns])
 
   /**
    * グローバル検索の一致箇所を計算
@@ -797,17 +819,15 @@ export function AdvancedDataFrame({
         onMouseLeave={() => setIsTableHovered(false)}
       >
       {/* テーブルツールバー（検索機能など） */}
-      {enableGlobalSearch && (
-        <TableToolbar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          currentMatchIndex={currentMatchIndex}
-          totalMatches={totalMatches}
-          onNextMatch={handleNextMatch}
-          onPrevMatch={handlePrevMatch}
-          isVisible={isTableHovered}
-        />
-      )}
+      <TableToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        currentMatchIndex={currentMatchIndex}
+        totalMatches={totalMatches}
+        onNextMatch={handleNextMatch}
+        onPrevMatch={handlePrevMatch}
+        isVisible={isTableHovered}
+      />
       <table
         className={cn(fullWidth ? 'w-full' : 'w-fit')}
         style={{ borderCollapse: 'separate', borderSpacing: 0 }}
@@ -848,7 +868,6 @@ export function AdvancedDataFrame({
                       header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default',
-                      isDraggable && 'cursor-move',
                     )}
                     style={{
                       width: header.getSize(),

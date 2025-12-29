@@ -32,12 +32,50 @@ def main():
     - ✅ グローバル検索（全カラム横断検索、一致箇所ハイライト）
 
     ### Phase 3:
-    - ✅ カラム並び替え（ドラッグ&ドロップ） ← NEW!
+    - ✅ カラム並び替え（ドラッグ&ドロップ）
+    - ✅ カラム表示/非表示 ← NEW!
     """
     )
 
-    # Phase 3: カラム並び替え機能のデモ（最新機能を上に配置）
-    st.header("1. カラム並び替え機能（Phase 3）← NEW!")
+    # Phase 3: カラム表示/非表示機能のデモ（最新機能を上に配置）
+    st.header("1. カラム表示/非表示機能（Phase 3）← NEW!")
+    st.markdown(
+        """
+    `visible_columns`パラメータで表示するカラムを指定できます。
+
+    **機能:**
+    - ✅ Python APIで表示カラムを指定（`visible_columns=['カラム名', ...]`）
+    - ✅ 指定されたカラムのみが表示される
+    - ✅ カラムの表示順序は元のDataFrameの順序に従う
+    """
+    )
+
+    df_visibility = pd.DataFrame(
+        {
+            "商品名": ["商品A", "商品B", "商品C", "商品D", "商品E"],
+            "価格": [1000, 2000, 1500, 3000, 2500],
+            "在庫数": [50, 30, 45, 20, 35],
+            "カテゴリ": ["食品", "家電", "衣類", "書籍", "雑貨"],
+            "評価": [4.5, 4.8, 4.2, 4.0, 4.6],
+            "販売数": [120, 85, 95, 60, 110],
+        }
+    )
+
+    st.markdown(
+        """
+    **カラム表示/非表示のデモ:** 「商品名」「価格」「評価」のみを表示
+    """
+    )
+
+    advanced_dataframe(
+        data=df_visibility,
+        height=300,
+        visible_columns=["商品名", "価格", "評価"],
+        key="visibility_table",
+    )
+
+    # Phase 3: カラム並び替え機能のデモ
+    st.header("2. カラム並び替え機能（Phase 3）")
     st.markdown(
         """
     カラムヘッダをドラッグ&ドロップで並び替えできます。
@@ -73,7 +111,7 @@ def main():
     )
 
     # Phase 2: グローバル検索機能のデモ
-    st.header("2. グローバル検索機能（Phase 2）")
+    st.header("3. グローバル検索機能（Phase 2）")
     st.markdown(
         """
     テーブルにマウスをホバーすると、右上に検索アイコン（🔍）が表示されます。
@@ -91,10 +129,22 @@ def main():
 
     df_search = pd.DataFrame(
         {
-            "商品名": ["iPhone 15", "Galaxy S24", "Pixel 8", "Xperia 5", "AQUOS sense8"],
+            "商品名": [
+                "iPhone 15",
+                "Galaxy S24",
+                "Pixel 8",
+                "Xperia 5",
+                "AQUOS sense8",
+            ],
             "メーカー": ["Apple", "Samsung", "Google", "Sony", "Sharp"],
             "価格": [159800, 139800, 128000, 114800, 39800],
-            "カテゴリ": ["スマートフォン", "スマートフォン", "スマートフォン", "スマートフォン", "スマートフォン"],
+            "カテゴリ": [
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+                "スマートフォン",
+            ],
         }
     )
 
@@ -107,12 +157,11 @@ def main():
     advanced_dataframe(
         data=df_search,
         height=300,
-        enable_global_search=True,  # デフォルトでTrueなので省略可能
         key="search_table",
     )
 
     # Phase 2: 日付フィルタ機能のデモ
-    st.header("3. 日付フィルタ機能（Phase 2）")
+    st.header("4. 日付フィルタ機能（Phase 2）")
     st.markdown(
         """
     日付カラムのフィルタアイコン（🔍）をクリックして、日付範囲でフィルタできます。
@@ -167,7 +216,7 @@ def main():
     )
 
     # Phase 2: カラムフィルタ機能のデモ
-    st.header("4. カラムフィルタ機能（Phase 2）")
+    st.header("5. カラムフィルタ機能（Phase 2）")
     st.markdown(
         """
     ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
@@ -247,7 +296,7 @@ def main():
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("5. 行選択機能（Phase 2）")
+    st.header("6. 行選択機能（Phase 2）")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -288,7 +337,7 @@ def main():
         st.info("行が選択されていません")
 
     # サンプルデータ1: 基本的なデータ
-    st.header("6. 基本的なテーブル表示")
+    st.header("7. 基本的なテーブル表示")
     df_basic = pd.DataFrame(
         {
             "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
@@ -314,7 +363,7 @@ def main():
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
-    st.header("7. 多数のカラムを持つテーブル")
+    st.header("8. 多数のカラムを持つテーブル")
     df_many_cols = pd.DataFrame(
         {
             "ID": range(1, 11),
@@ -345,7 +394,7 @@ def main():
     )
 
     # サンプルデータ3: 数値データ
-    st.header("8. 数値データのソート確認")
+    st.header("9. 数値データのソート確認")
     df_numbers = pd.DataFrame(
         {
             "整数": [10, 5, 8, 3, 15, 1, 12],

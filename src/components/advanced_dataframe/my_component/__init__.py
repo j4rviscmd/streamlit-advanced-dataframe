@@ -29,7 +29,7 @@ def advanced_dataframe(
     enable_row_selection: bool = False,
     enable_filters: list[str] | None = None,
     show_filter_records: bool = False,
-    enable_global_search: bool = True,
+    visible_columns: list[str] | None = None,
     key: str | None = None,
 ) -> Any:
     """
@@ -71,12 +71,16 @@ def advanced_dataframe(
     show_filter_records : bool, optional
         フィルタレコード数の表示を有効化するか、デフォルトはFalse
         Trueの場合、フィルタ適用時に「全100件中25件を表示」のような表示が追加されます
-    enable_global_search : bool, optional
-        グローバル検索機能を有効化するか、デフォルトはTrue
-        Trueの場合、テーブル右上に検索アイコンが表示され、全カラムを対象とした検索が可能になります
-        検索クエリに一致するセルは赤系背景でハイライト表示されます
+    visible_columns : list[str] or None, optional
+        表示するカラム名のリスト、デフォルトはNone（全カラム表示）
+        指定されたカラムのみが表示されます。カラムの表示順序は元のDataFrameの順序に従います
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
+
+    Note
+    ----
+    グローバル検索機能は常に有効です。テーブル右上に検索アイコンが表示され、
+    全カラムを対象とした検索が可能です。検索クエリに一致するセルは赤系背景でハイライト表示されます。
 
     Returns
     -------
@@ -147,7 +151,7 @@ def advanced_dataframe(
         full_width=full_width,
         enable_row_selection=enable_row_selection,
         show_filter_records=show_filter_records,
-        enable_global_search=enable_global_search,
+        visible_columns=visible_columns,
         key=key,
         default=None,
     )
