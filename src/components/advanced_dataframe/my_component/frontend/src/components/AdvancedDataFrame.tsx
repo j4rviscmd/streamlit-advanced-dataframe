@@ -553,8 +553,9 @@ export function AdvancedDataFrame({
   const borderColor = isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
 
   // カラムIDのインデックスを取得（選択範囲の計算に使用）
+  // グループカラムを除外し、リーフカラム（実際のデータカラム）のみを取得
   const columnIds = useMemo(
-    () => table.getAllColumns().map((col) => col.id),
+    () => table.getAllLeafColumns().map((col) => col.id),
     [table],
   )
 

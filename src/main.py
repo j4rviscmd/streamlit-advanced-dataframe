@@ -83,8 +83,16 @@ def main():
                                 "売上": 15000,
                                 "在庫": 45,
                                 "subRows": [
-                                    {"カテゴリ": "愛媛産", "売上": 8000, "在庫": 25},
-                                    {"カテゴリ": "和歌山産", "売上": 7000, "在庫": 20},
+                                    {
+                                        "カテゴリ": "愛媛産",
+                                        "売上": 8000,
+                                        "在庫": 25,
+                                    },
+                                    {
+                                        "カテゴリ": "和歌山産",
+                                        "売上": 7000,
+                                        "在庫": 20,
+                                    },
                                 ],
                             },
                         ],
@@ -145,7 +153,8 @@ def main():
         st.success(f"選択された行: {selected_expandable_row}")
         st.write("選択された行のデータ:")
         st.dataframe(
-            expandable_data.iloc[[selected_expandable_row]], use_container_width=True
+            expandable_data.iloc[[selected_expandable_row]],
+            use_container_width=True,
         )
     else:
         st.info("行が選択されていません")
