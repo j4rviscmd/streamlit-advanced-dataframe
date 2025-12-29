@@ -64,3 +64,25 @@ export interface StreamlitTheme {
   /** フォントファミリー */
   font: string
 }
+
+/**
+ * セルの位置情報
+ * rowIndexとcolumnIdでセルを一意に特定
+ */
+export interface CellPosition {
+  /** 行インデックス（0始まり） */
+  rowIndex: number
+  /** カラムID */
+  columnId: string
+}
+
+/**
+ * セル選択範囲
+ * 開始セルと終了セルで矩形範囲を定義
+ */
+export interface CellSelection {
+  /** 選択開始セル */
+  start: CellPosition
+  /** 選択終了セル */
+  end: CellPosition
+}
