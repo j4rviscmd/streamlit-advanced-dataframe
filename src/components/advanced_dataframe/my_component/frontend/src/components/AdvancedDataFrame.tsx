@@ -75,9 +75,12 @@ export function AdvancedDataFrame({
   useEffect(() => {
     if (expandable) {
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
-      setTimeout(() => {
-        Streamlit.setFrameHeight()
-      }, 0)
+      // requestAnimationFrameで2回待つことで、レンダリングとレイアウトが完了することを保証
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          Streamlit.setFrameHeight()
+        })
+      })
     }
   }, [expanded, expandable])
 
