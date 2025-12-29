@@ -442,19 +442,31 @@ export function AdvancedDataFrame({
         size: 50,
         enableSorting: false,
         enableResizing: false,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={selectedRowIndex === row.index}
-              onCheckedChange={() => {
-                setSelectedRowIndex(
-                  selectedRowIndex === row.index ? null : row.index,
-                )
-              }}
-              className="data-[state=checked]:border-red-500 data-[state=checked]:bg-red-500"
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const isChecked = selectedRowIndex === row.index
+          return (
+            <div className="flex items-center justify-center">
+              <Checkbox
+                checked={isChecked}
+                onCheckedChange={() => {
+                  setSelectedRowIndex(
+                    selectedRowIndex === row.index ? null : row.index,
+                  )
+                }}
+                style={{
+                  // ダークテーマ対応のボーダー色
+                  borderColor: isChecked
+                    ? theme.primaryColor
+                    : isDark
+                      ? 'rgba(250, 250, 250, 0.4)'
+                      : 'rgba(0, 0, 0, 0.3)',
+                  // チェック時の背景色をStreamlitテーマカラーに
+                  backgroundColor: isChecked ? theme.primaryColor : 'transparent',
+                }}
+              />
+            </div>
+          )
+        },
       }
       specialColumns.push(selectionColumn)
     }
