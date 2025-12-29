@@ -32,8 +32,10 @@ import {
   ColumnFiltersState,
   ColumnResizeMode,
   createColumnHelper,
+  ExpandedState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   SortingState,
@@ -54,6 +56,8 @@ export function AdvancedDataFrame({
   showFilterRecords = false,
   visibleColumns,
   columnGroups,
+  expandable = false,
+  subRowsKey = 'subRows',
 }: StreamlitProps) {
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
@@ -63,6 +67,9 @@ export function AdvancedDataFrame({
 
   // フィルタ状態管理
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+  // 展開状態管理（Phase 4で追加）
+  const [expanded, setExpanded] = useState<ExpandedState>({})
 
   // 行選択状態管理（選択された行のインデックス、単一選択のみ）
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
@@ -401,6 +408,9 @@ export function AdvancedDataFrame({
       finalColumns = dataColumns
     }
 
+    // 特殊カラムを追加（選択、展開）
+    const specialColumns: ColumnDef<RowData, unknown>[] = []
+
     // 行選択機能が有効な場合、チェックボックスカラムを先頭に追加
     if (enableRowSelection) {
       const selectionColumn: ColumnDef<RowData, unknown> = {
@@ -423,10 +433,36 @@ export function AdvancedDataFrame({
           </div>
         ),
       }
-      return [selectionColumn, ...finalColumns]
+      specialColumns.push(selectionColumn)
     }
 
-    return finalColumns
+    // 行展開機能が有効な場合、展開ボタンカラムを追加
+    if (expandable) {
+      const expanderColumn: ColumnDef<RowData, unknown> = {
+        id: '__expander__',
+        header: '',
+        size: 50,
+        enableSorting: false,
+        enableResizing: false,
+        cell: ({ row }) => {
+          const canExpand = row.getCanExpand()
+          if (!canExpand) return null
+
+          return (
+            <button
+              onClick={row.getToggleExpandedHandler()}
+              className="px-2 py-1"
+              style={{ cursor: 'pointer' }}
+            >
+              {row.getIsExpanded() ? '▼' : '▶'}
+            </button>
+          )
+        },
+      }
+      specialColumns.push(expanderColumn)
+    }
+
+    return [...specialColumns, ...finalColumns]
   }, [
     columns,
     columnHelper,
@@ -435,6 +471,7 @@ export function AdvancedDataFrame({
     selectedRowIndex,
     columnGroups,
     columnTypeMap,
+    expandable,
   ])
 
   // TanStack Tableインスタンス作成
@@ -446,14 +483,18 @@ export function AdvancedDataFrame({
       columnFilters,
       columnOrder,
       columnVisibility,
+      expanded,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnOrderChange: setColumnOrder,
     onColumnVisibilityChange: setColumnVisibility,
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getExpandedRowModel: expandable ? getExpandedRowModel() : undefined,
+    getSubRows: expandable ? (row) => (row[subRowsKey] as RowData[]) : undefined,
     columnResizeMode,
     enableSortingRemoval: true,
     enableMultiSort: false, // Phase 1では単一カラムソートのみ

@@ -7,7 +7,7 @@ from components.advanced_dataframe.my_component import (
 
 
 def main():
-    TITLE = "Advanced DataFrame - Phase 1, 2 & 3 Demo"
+    TITLE = "Advanced DataFrame - Phase 1, 2, 3 & 4 Demo"
     st.set_page_config(page_title=TITLE, layout="wide")
     st.title(TITLE)
 
@@ -34,12 +34,74 @@ def main():
     ### Phase 3:
     - ✅ カラム並び替え（ドラッグ&ドロップ）
     - ✅ カラム表示/非表示
-    - ✅ ヘッダ結合（カラムグループ） ← NEW!
+    - ✅ ヘッダ結合（カラムグループ）
+
+    ### Phase 4:
+    - ✅ 行展開（階層データ表示） ← NEW!
     """
     )
 
-    # Phase 3: ヘッダ結合（カラムグループ）機能のデモ（最新機能を上に配置）
-    st.header("1. ヘッダ結合（カラムグループ）機能（Phase 3）← NEW!")
+    # Phase 4: 行展開機能のデモ（最新機能を上に配置）
+    st.header("1. 行展開機能（Phase 4）← NEW!")
+    st.markdown(
+        """
+    `expandable=True`で階層データを展開・折りたたみ表示できます。
+
+    **機能:**
+    - ✅ 階層データの展開・折りたたみ（▶/▼ボタン）
+    - ✅ サブ行データは`subRows`キーに指定（キー名は`sub_rows_key`でカスタマイズ可能）
+    - ✅ 任意の階層レベルをサポート
+    """
+    )
+
+    # 階層データを作成
+    expandable_data = pd.DataFrame(
+        [
+            {
+                "カテゴリ": "食品",
+                "売上": 50000,
+                "在庫": 150,
+                "subRows": [
+                    {"カテゴリ": "野菜", "売上": 20000, "在庫": 60},
+                    {"カテゴリ": "果物", "売上": 30000, "在庫": 90},
+                ],
+            },
+            {
+                "カテゴリ": "家電",
+                "売上": 120000,
+                "在庫": 45,
+                "subRows": [
+                    {"カテゴリ": "テレビ", "売上": 80000, "在庫": 20},
+                    {"カテゴリ": "冷蔵庫", "売上": 40000, "在庫": 25},
+                ],
+            },
+            {
+                "カテゴリ": "衣類",
+                "売上": 35000,
+                "在庫": 200,
+                "subRows": [
+                    {"カテゴリ": "メンズ", "売上": 15000, "在庫": 80},
+                    {"カテゴリ": "レディース", "売上": 20000, "在庫": 120},
+                ],
+            },
+        ]
+    )
+
+    st.markdown(
+        """
+    **行展開のデモ:** ▶ボタンをクリックしてサブ行を展開してください
+    """
+    )
+
+    advanced_dataframe(
+        data=expandable_data,
+        height=400,
+        expandable=True,
+        key="expandable_table",
+    )
+
+    # Phase 3: ヘッダ結合（カラムグループ）機能のデモ
+    st.header("2. ヘッダ結合（カラムグループ）機能（Phase 3）")
     st.markdown(
         """
     `column_groups`パラメータで複数のカラムをグループ化し、ヘッダを結合できます。
@@ -82,7 +144,7 @@ def main():
     )
 
     # Phase 3: カラム表示/非表示機能のデモ
-    st.header("2. カラム表示/非表示機能（Phase 3）")
+    st.header("3. カラム表示/非表示機能（Phase 3）")
     st.markdown(
         """
     `visible_columns`パラメータで表示するカラムを指定できます。
@@ -119,7 +181,7 @@ def main():
     )
 
     # Phase 3: カラム並び替え機能のデモ
-    st.header("3. カラム並び替え機能（Phase 3）")
+    st.header("4. カラム並び替え機能（Phase 3）")
     st.markdown(
         """
     カラムヘッダをドラッグ&ドロップで並び替えできます。
@@ -155,7 +217,7 @@ def main():
     )
 
     # Phase 2: グローバル検索機能のデモ
-    st.header("4. グローバル検索機能（Phase 2）")
+    st.header("5. グローバル検索機能（Phase 2）")
     st.markdown(
         """
     テーブルにマウスをホバーすると、右上に検索アイコン（🔍）が表示されます。
@@ -205,7 +267,7 @@ def main():
     )
 
     # Phase 2: 日付フィルタ機能のデモ
-    st.header("5. 日付フィルタ機能（Phase 2）")
+    st.header("6. 日付フィルタ機能（Phase 2）")
     st.markdown(
         """
     日付カラムのフィルタアイコン（🔍）をクリックして、日付範囲でフィルタできます。
@@ -260,7 +322,7 @@ def main():
     )
 
     # Phase 2: カラムフィルタ機能のデモ
-    st.header("6. カラムフィルタ機能（Phase 2）")
+    st.header("7. カラムフィルタ機能（Phase 2）")
     st.markdown(
         """
     ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
@@ -340,7 +402,7 @@ def main():
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("7. 行選択機能（Phase 2）")
+    st.header("8. 行選択機能（Phase 2）")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -381,7 +443,7 @@ def main():
         st.info("行が選択されていません")
 
     # サンプルデータ1: 基本的なデータ
-    st.header("8. 基本的なテーブル表示")
+    st.header("9. 基本的なテーブル表示")
     df_basic = pd.DataFrame(
         {
             "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
@@ -407,7 +469,7 @@ def main():
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
-    st.header("9. 多数のカラムを持つテーブル")
+    st.header("10. 多数のカラムを持つテーブル")
     df_many_cols = pd.DataFrame(
         {
             "ID": range(1, 11),
@@ -438,7 +500,7 @@ def main():
     )
 
     # サンプルデータ3: 数値データ
-    st.header("10. 数値データのソート確認")
+    st.header("11. 数値データのソート確認")
     df_numbers = pd.DataFrame(
         {
             "整数": [10, 5, 8, 3, 15, 1, 12],

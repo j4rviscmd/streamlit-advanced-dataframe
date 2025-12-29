@@ -31,6 +31,8 @@ def advanced_dataframe(
     show_filter_records: bool = False,
     visible_columns: list[str] | None = None,
     column_groups: list[dict[str, Any]] | None = None,
+    expandable: bool = False,
+    sub_rows_key: str = "subRows",
     key: str | None = None,
 ) -> Any:
     """
@@ -80,6 +82,13 @@ def advanced_dataframe(
         各要素は {'header': 'グループ名', 'columns': ['カラム1', 'カラム2']} の形式
         'id'キーは省略可能（省略時は'header'を使用）
         グループに属さないカラムは通常のヘッダとして表示されます
+    expandable : bool, optional
+        行展開機能を有効化するか、デフォルトはFalse
+        Trueの場合、階層データを展開・折りたたみ表示できます
+        データには`sub_rows_key`で指定したキーにサブ行のリストを含める必要があります
+    sub_rows_key : str, optional
+        サブ行データのキー名、デフォルトは"subRows"
+        各行のこのキーにサブ行のリスト（dict）を含めることで階層表示されます
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -170,6 +179,8 @@ def advanced_dataframe(
         show_filter_records=show_filter_records,
         visible_columns=visible_columns,
         column_groups=column_groups,
+        expandable=expandable,
+        sub_rows_key=sub_rows_key,
         key=key,
         default=None,
     )
