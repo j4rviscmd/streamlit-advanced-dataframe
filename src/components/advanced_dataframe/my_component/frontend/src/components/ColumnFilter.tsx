@@ -200,14 +200,22 @@ export function ColumnFilter({
           type="button"
           onClick={(e) => e.stopPropagation()} // ソートのトリガーを防止
           className={cn(
-            'cursor-pointer rounded p-1 transition-colors',
+            'relative cursor-pointer rounded p-1 transition-all',
             isFiltered
-              ? 'text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400'
-              : 'text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300',
+              ? 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-950/30'
+              : 'text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 opacity-60 hover:opacity-100',
           )}
           aria-label="フィルタ"
         >
-          <Filter className="size-4" strokeWidth={3} fill="currentColor" />
+          <Filter
+            className="size-4"
+            strokeWidth={isFiltered ? 3 : 2}
+            fill={isFiltered ? 'currentColor' : 'none'}
+          />
+          {/* フィルタ適用時のバッジ（小さい赤い点） */}
+          {isFiltered && (
+            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-red-500 dark:bg-red-400" />
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent
