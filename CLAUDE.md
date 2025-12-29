@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # CLAUDE.md - streamlit-advanced-dataframe プロジェクト固有ルール
 
 このファイルは `streamlit-advanced-dataframe` プロジェクトの開発ルールを定義します。
