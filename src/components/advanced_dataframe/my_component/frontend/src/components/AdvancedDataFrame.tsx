@@ -421,7 +421,7 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                   <th
                     key={header.id}
                     className={cn(
-                      'sticky top-0 z-10 px-3 py-2 text-sm font-light transition-colors duration-150 select-none',
+                      'sticky top-0 z-10 px-3 text-sm font-light transition-colors duration-150 select-none',
                       isNumeric ? 'text-right' : 'text-left',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
@@ -429,6 +429,8 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     )}
                     style={{
                       width: header.getSize(),
+                      paddingTop: '0.4375rem',
+                      paddingBottom: '0.4375rem',
                       backgroundColor: isHovered
                         ? secondaryBackgroundColor
                         : headerNormalBgColor,
@@ -518,11 +520,13 @@ export function AdvancedDataFrame({ data, columns, height }: StreamlitProps) {
                     <td
                       key={cell.id}
                       className={cn(
-                        'relative cursor-cell px-3 py-2 text-sm select-none',
+                        'relative cursor-cell px-3 text-sm select-none',
                         isNumeric ? 'text-right' : 'text-left',
                       )}
                       style={{
                         width: cell.column.getSize(),
+                        paddingTop: '0.4375rem',
+                        paddingBottom: '0.4375rem',
                         borderTop: `1px solid ${borderColor}`,
                         borderLeft: isFirstColumn
                           ? 'none'
