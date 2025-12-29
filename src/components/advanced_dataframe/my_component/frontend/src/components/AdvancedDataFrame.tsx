@@ -559,9 +559,21 @@ export function AdvancedDataFrame({
           visibility[colId] = visibleColumns.includes(colId)
         }
       })
-      setColumnVisibility(visibility)
+
+      // 現在の値と比較して、変更がある場合のみ更新（無限ループ防止）
+      const hasChanges =
+        Object.keys(visibility).some(
+          (key) => columnVisibility[key] !== visibility[key],
+        ) ||
+        Object.keys(columnVisibility).some(
+          (key) => columnVisibility[key] !== visibility[key],
+        )
+
+      if (hasChanges) {
+        setColumnVisibility(visibility)
+      }
     }
-  }, [visibleColumns, tableColumns])
+  }, [visibleColumns, tableColumns, columnVisibility])
 
   /**
    * グローバル検索の一致箇所を計算
