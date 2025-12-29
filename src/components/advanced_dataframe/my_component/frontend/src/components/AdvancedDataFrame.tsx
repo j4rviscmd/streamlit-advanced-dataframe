@@ -92,6 +92,12 @@ export function AdvancedDataFrame({
   // 現在の一致インデックス（1始まり、0は一致なし）
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
 
+  // カラム順序の状態管理（Phase 3）
+  const [columnOrder, setColumnOrder] = useState<string[]>([])
+
+  // ドラッグ中のカラムID
+  const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null)
+
   /**
    * 背景色を明るくする関数
    */
@@ -371,9 +377,11 @@ export function AdvancedDataFrame({
     state: {
       sorting,
       columnFilters,
+      columnOrder,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -396,6 +404,14 @@ export function AdvancedDataFrame({
     () => table.getAllColumns().map((col) => col.id),
     [table],
   )
+
+  // カラム順序の初期化（tableColumnsが変更されたとき）
+  useEffect(() => {
+    if (columnOrder.length === 0) {
+      const initialOrder = tableColumns.map((col) => col.id as string)
+      setColumnOrder(initialOrder)
+    }
+  }, [tableColumns, columnOrder.length])
 
   /**
    * グローバル検索の一致箇所を計算
@@ -451,6 +467,58 @@ export function AdvancedDataFrame({
     if (totalMatches === 0) return
     setCurrentMatchIndex((prev) => (prev <= 1 ? totalMatches : prev - 1))
   }, [totalMatches])
+
+  /**
+   * カラムのドラッグ開始
+   */
+  const handleColumnDragStart = useCallback(
+    (columnId: string, e: React.DragEvent) => {
+      setDraggedColumnId(columnId)
+      e.dataTransfer.effectAllowed = 'move'
+      e.dataTransfer.setData('text/html', columnId)
+    },
+    [],
+  )
+
+  /**
+   * カラムのドラッグオーバー
+   */
+  const handleColumnDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }, [])
+
+  /**
+   * カラムのドロップ
+   */
+  const handleColumnDrop = useCallback(
+    (targetColumnId: string, e: React.DragEvent) => {
+      e.preventDefault()
+      if (!draggedColumnId || draggedColumnId === targetColumnId) return
+
+      setColumnOrder((prevOrder) => {
+        const newOrder = [...prevOrder]
+        const draggedIndex = newOrder.indexOf(draggedColumnId)
+        const targetIndex = newOrder.indexOf(targetColumnId)
+
+        // 配列から削除して、新しい位置に挿入
+        newOrder.splice(draggedIndex, 1)
+        newOrder.splice(targetIndex, 0, draggedColumnId)
+
+        return newOrder
+      })
+
+      setDraggedColumnId(null)
+    },
+    [draggedColumnId],
+  )
+
+  /**
+   * カラムのドラッグ終了
+   */
+  const handleColumnDragEnd = useCallback(() => {
+    setDraggedColumnId(null)
+  }, [])
 
   /**
    * セルが検索一致箇所かどうかをチェック
@@ -754,16 +822,33 @@ export function AdvancedDataFrame({
 
                 const isHovered = hoveredHeaderId === header.id
                 const isNumeric = numericColumns.has(header.column.id)
+                const isSelectionColumn = header.column.id === '__selection__'
+                const isDragging = draggedColumnId === header.column.id
+                const isDraggable = !isSelectionColumn
 
                 return (
                   <th
                     key={header.id}
+                    draggable={isDraggable}
+                    onDragStart={
+                      isDraggable
+                        ? (e) => handleColumnDragStart(header.column.id, e)
+                        : undefined
+                    }
+                    onDragOver={isDraggable ? handleColumnDragOver : undefined}
+                    onDrop={
+                      isDraggable
+                        ? (e) => handleColumnDrop(header.column.id, e)
+                        : undefined
+                    }
+                    onDragEnd={isDraggable ? handleColumnDragEnd : undefined}
                     className={cn(
                       'sticky top-0 z-20 px-3 text-sm font-light transition-colors duration-150 select-none',
                       isNumeric ? 'text-right' : 'text-left',
                       header.column.getCanSort()
                         ? 'cursor-pointer'
                         : 'cursor-default',
+                      isDraggable && 'cursor-move',
                     )}
                     style={{
                       width: header.getSize(),
@@ -778,6 +863,7 @@ export function AdvancedDataFrame({
                         : `1px solid ${borderColor}`,
                       borderRight: 'none',
                       borderBottom: `1px solid ${borderColor}`,
+                      opacity: isDragging ? 0.5 : 1,
                     }}
                     onClick={header.column.getToggleSortingHandler()}
                     onMouseEnter={() => setHoveredHeaderId(header.id)}

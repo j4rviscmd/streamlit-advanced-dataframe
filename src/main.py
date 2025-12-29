@@ -7,7 +7,7 @@ from components.advanced_dataframe.my_component import (
 
 
 def main():
-    TITLE = "Advanced DataFrame - Phase 1 & 2 Demo"
+    TITLE = "Advanced DataFrame - Phase 1, 2 & 3 Demo"
     st.set_page_config(page_title=TITLE, layout="wide")
     st.title(TITLE)
 
@@ -29,12 +29,51 @@ def main():
     - ✅ カラムフィルタ（テキスト + 複数選択）
     - ✅ カラムフィルタ（数値範囲）
     - ✅ カラムフィルタ（日付範囲）
-    - ✅ グローバル検索（全カラム横断検索、一致箇所ハイライト） ← NEW!
+    - ✅ グローバル検索（全カラム横断検索、一致箇所ハイライト）
+
+    ### Phase 3:
+    - ✅ カラム並び替え（ドラッグ&ドロップ） ← NEW!
     """
     )
 
-    # Phase 2: グローバル検索機能のデモ（最新機能を上に配置）
-    st.header("1. グローバル検索機能（Phase 2）← NEW!")
+    # Phase 3: カラム並び替え機能のデモ（最新機能を上に配置）
+    st.header("1. カラム並び替え機能（Phase 3）← NEW!")
+    st.markdown(
+        """
+    カラムヘッダをドラッグ&ドロップで並び替えできます。
+
+    **機能:**
+    - ✅ ヘッダのドラッグ&ドロップで順序変更
+    - ✅ ドラッグ中のカラムは半透明表示
+    - ✅ カーソルが移動アイコンに変化
+    - ✅ 選択カラム（チェックボックス）は並び替え不可
+    """
+    )
+
+    df_reorder = pd.DataFrame(
+        {
+            "商品名": ["商品A", "商品B", "商品C", "商品D", "商品E"],
+            "価格": [1000, 2000, 1500, 3000, 2500],
+            "在庫数": [50, 30, 45, 20, 35],
+            "カテゴリ": ["食品", "家電", "衣類", "書籍", "雑貨"],
+            "評価": [4.5, 4.8, 4.2, 4.0, 4.6],
+        }
+    )
+
+    st.markdown(
+        """
+    **並び替えのデモ:** カラムヘッダをドラッグして順序を変更してください。
+    """
+    )
+
+    advanced_dataframe(
+        data=df_reorder,
+        height=300,
+        key="reorder_table",
+    )
+
+    # Phase 2: グローバル検索機能のデモ
+    st.header("2. グローバル検索機能（Phase 2）")
     st.markdown(
         """
     テーブルにマウスをホバーすると、右上に検索アイコン（🔍）が表示されます。
@@ -73,7 +112,7 @@ def main():
     )
 
     # Phase 2: 日付フィルタ機能のデモ
-    st.header("2. 日付フィルタ機能（Phase 2）")
+    st.header("3. 日付フィルタ機能（Phase 2）")
     st.markdown(
         """
     日付カラムのフィルタアイコン（🔍）をクリックして、日付範囲でフィルタできます。
@@ -128,7 +167,7 @@ def main():
     )
 
     # Phase 2: カラムフィルタ機能のデモ
-    st.header("3. カラムフィルタ機能（Phase 2）")
+    st.header("4. カラムフィルタ機能（Phase 2）")
     st.markdown(
         """
     ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
@@ -208,7 +247,7 @@ def main():
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("4. 行選択機能（Phase 2）")
+    st.header("5. 行選択機能（Phase 2）")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -249,7 +288,7 @@ def main():
         st.info("行が選択されていません")
 
     # サンプルデータ1: 基本的なデータ
-    st.header("5. 基本的なテーブル表示")
+    st.header("6. 基本的なテーブル表示")
     df_basic = pd.DataFrame(
         {
             "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
@@ -275,7 +314,7 @@ def main():
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
-    st.header("6. 多数のカラムを持つテーブル")
+    st.header("7. 多数のカラムを持つテーブル")
     df_many_cols = pd.DataFrame(
         {
             "ID": range(1, 11),
@@ -306,7 +345,7 @@ def main():
     )
 
     # サンプルデータ3: 数値データ
-    st.header("7. 数値データのソート確認")
+    st.header("8. 数値データのソート確認")
     df_numbers = pd.DataFrame(
         {
             "整数": [10, 5, 8, 3, 15, 1, 12],
