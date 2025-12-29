@@ -1,5 +1,5 @@
 import os
-from typing import Any, List, Dict, Optional
+from typing import Any, Hashable
 
 import pandas as pd
 import streamlit.components.v1 as components
@@ -26,7 +26,7 @@ def advanced_dataframe(
     data: pd.DataFrame,
     height: int = 600,
     full_width: bool = False,
-    key: Optional[str] = None,
+    key: str | None = None,
 ) -> Any:
     """
     高機能DataFrameコンポーネント（Phase 1版）
@@ -75,10 +75,10 @@ def advanced_dataframe(
     >>> advanced_dataframe(data=df, height=400, full_width=True, key="my_table2")
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
-    data_json: List[Dict[str, Any]] = data.to_dict("records")
+    data_json: list[dict[Hashable, Any]] = data.to_dict("records")
 
     # カラム設定を生成
-    columns_json: List[Dict[str, Any]] = [
+    columns_json: list[dict[str, Any]] = [
         {
             "id": col,
             "header": col,
