@@ -279,6 +279,56 @@ export function AdvancedDataFrame({
     return map
   }, [data, columns, columnTypeMap])
 
+  /**
+   * カラムの推定幅を計算（コンテンツfit）
+   * - 英数字: 8px/文字
+   * - 日本語（全角）: 16px/文字
+   * - パディング: 24px（左右12pxずつ）
+   * - アイコン（フィルタ、ソート）: 40px
+   */
+  const estimateColumnWidth = useCallback(
+    (columnId: string, header: string): number => {
+      // Boolean型カラムは固定幅（チェックボックス表示のため）
+      if (booleanColumns.has(columnId)) {
+        return 120
+      }
+
+      // ヘッダの文字幅を計算
+      const headerChars = header.split('')
+      const headerWidth =
+        headerChars.reduce((sum, char) => {
+          // 全角文字（日本語、中国語など）は16px、半角は8px
+          return sum + (char.match(/[\u3000-\u9FFF\uFF00-\uFFEF]/) ? 16 : 8)
+        }, 0) +
+        24 + // パディング
+        40 // アイコン（フィルタ、ソート用の余白）
+
+      // データの最大文字幅を計算（最大100行まで）
+      const sampleSize = Math.min(100, data.length)
+      let maxDataWidth = 0
+
+      for (let i = 0; i < sampleSize; i++) {
+        const rawValue = data[i][columnId]
+        // 数値の場合は3桁区切りフォーマット後の文字列を使用
+        const value =
+          typeof rawValue === 'number'
+            ? rawValue.toLocaleString()
+            : String(rawValue ?? '')
+        const chars = value.split('')
+        const width = chars.reduce((sum, char) => {
+          return sum + (char.match(/[\u3000-\u9FFF\uFF00-\uFFEF]/) ? 16 : 8)
+        }, 0)
+        maxDataWidth = Math.max(maxDataWidth, width)
+      }
+
+      const dataWidth = maxDataWidth + 24 // パディング
+
+      // ヘッダとデータの最大幅を採用、最小80px、最大500px
+      return Math.max(80, Math.min(500, Math.max(headerWidth, dataWidth)))
+    },
+    [data, booleanColumns],
+  )
+
   // カラム定義をTanStack Table形式に変換
   const columnHelper = createColumnHelper<RowData>()
   const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(() => {
@@ -289,6 +339,7 @@ export function AdvancedDataFrame({
       return columnHelper.accessor(col.id, {
         id: col.id,
         header: col.header,
+        size: estimateColumnWidth(col.id, col.header),
         enableSorting: col.enableSorting ?? true,
         enableResizing: col.enableResizing ?? true,
         // セルの表示フォーマット（数値カラムは3桁区切り、booleanはチェックボックス）
@@ -567,11 +618,16 @@ export function AdvancedDataFrame({
     columns,
     columnHelper,
     numericColumns,
+    booleanColumns,
     enableRowSelection,
     selectedRowIndex,
     columnGroups,
     columnTypeMap,
     expandable,
+    estimateColumnWidth,
+    theme.primaryColor,
+    isDark,
+    data,
   ])
 
   // TanStack Tableインスタンス作成
