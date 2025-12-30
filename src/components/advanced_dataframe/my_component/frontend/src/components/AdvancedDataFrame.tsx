@@ -1486,10 +1486,10 @@ export function AdvancedDataFrame({
                             className="pointer-events-none absolute z-20"
                             style={{
                               backgroundColor: theme.primaryColor,
-                              top: '-1px',
-                              left: '-1px',
+                              top: 0,
+                              left: 0,
                               height: '1px',
-                              width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                              width: 'calc(100% + 0.5px)', // セル間のボーダーを確実にカバー
                             }}
                           />
                         )}
@@ -1499,10 +1499,10 @@ export function AdvancedDataFrame({
                             className="pointer-events-none absolute z-20"
                             style={{
                               backgroundColor: theme.primaryColor,
-                              bottom: '-1px',
-                              left: '-1px',
+                              bottom: 0,
+                              left: 0,
                               height: '1px',
-                              width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                              width: 'calc(100% + 0.5px)', // セル間のボーダーを確実にカバー
                             }}
                           />
                         )}
@@ -1512,10 +1512,10 @@ export function AdvancedDataFrame({
                             className="pointer-events-none absolute z-20"
                             style={{
                               backgroundColor: theme.primaryColor,
-                              left: '-1px',
-                              top: '-1px',
+                              left: 0,
+                              top: 0,
                               width: '1px',
-                              height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                              height: 'calc(100% + 0.5px)', // セル間のボーダーを確実にカバー
                             }}
                           />
                         )}
@@ -1525,10 +1525,10 @@ export function AdvancedDataFrame({
                             className="pointer-events-none absolute z-20"
                             style={{
                               backgroundColor: theme.primaryColor,
-                              right: '-1px',
-                              top: '-1px',
+                              right: 0,
+                              top: 0,
                               width: '1px',
-                              height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                              height: 'calc(100% + 0.5px)', // セル間のボーダーを確実にカバー
                             }}
                           />
                         )}
