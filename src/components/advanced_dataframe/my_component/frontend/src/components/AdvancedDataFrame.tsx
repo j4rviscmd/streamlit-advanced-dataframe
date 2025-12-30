@@ -1129,16 +1129,6 @@ export function AdvancedDataFrame({
         onMouseEnter={() => setIsTableHovered(true)}
         onMouseLeave={() => setIsTableHovered(false)}
       >
-        {/* 上辺ボーダー専用要素（theadより前面に表示） */}
-        <div
-          className="pointer-events-none sticky top-0 right-0 left-0 z-40"
-          style={{
-            height: 0,
-            borderTop: `1px solid ${borderColor}`,
-            borderTopLeftRadius: '0.375rem',
-            borderTopRightRadius: '0.375rem',
-          }}
-        />
         {/* テーブルツールバー（検索機能など） */}
         <TableToolbar
           searchQuery={searchQuery}
@@ -1162,6 +1152,24 @@ export function AdvancedDataFrame({
               top: '0px',
             }}
           >
+            {/* 上辺ボーダー専用行 */}
+            <tr style={{ height: 0 }}>
+              <th
+                colSpan={table.getAllLeafColumns().length}
+                style={{
+                  height: 0,
+                  padding: 0,
+                  borderTop: `1px solid ${borderColor}`,
+                  borderTopLeftRadius: '0.475rem',
+                  borderTopRightRadius: '0.475rem',
+                  borderBottom: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  backgroundColor: headerNormalBgColor,
+                }}
+              />
+            </tr>
+            {/* 本来のヘッダ行 */}
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header, headerIndex) => {
