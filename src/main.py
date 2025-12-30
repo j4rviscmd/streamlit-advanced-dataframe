@@ -10,6 +10,21 @@ def main():
     TITLE = "Advanced DataFrame"
     st.set_page_config(page_title=TITLE, layout="wide")
     st.title(TITLE)
+    # サンプルデータ3: 数値データ
+    st.header("13. 数値データのソート確認")
+    df_numbers = pd.DataFrame(
+        {
+            "整数": [10, 5, 8, 3, 15, 1, 12],
+            "小数": [3.14, 2.71, 1.41, 9.81, 6.28, 4.67, 8.85],
+            "負の数": [-5, 10, -3, 8, -12, 0, 7],
+        }
+    )
+    advanced_dataframe(
+        data=df_numbers,
+        height=250,
+        key="numbers_table",
+        full_width=True,
+    )
 
     # Phase 4: 集計行のデモ（100行データでスクロール確認）
     st.header("1. 集計行機能デモ(100行データ)")
@@ -305,22 +320,6 @@ def main():
             {"header": "評価", "columns": ["評価"]},
         ],
         key="groups_table",
-    )
-
-    # サンプルデータ3: 数値データ
-    st.header("13. 数値データのソート確認")
-    df_numbers = pd.DataFrame(
-        {
-            "整数": [10, 5, 8, 3, 15, 1, 12],
-            "小数": [3.14, 2.71, 1.41, 9.81, 6.28, 4.67, 8.85],
-            "負の数": [-5, 10, -3, 8, -12, 0, 7],
-        }
-    )
-    advanced_dataframe(
-        data=df_numbers,
-        height=250,
-        key="numbers_table",
-        full_width=True,
     )
 
 
