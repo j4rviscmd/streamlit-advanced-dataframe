@@ -1299,6 +1299,9 @@ export function AdvancedDataFrame({
                       {/* カラムリサイズハンドル（グループヘッダ以外） */}
                       {!isGroupHeader && header.column.getCanResize() && (
                         <div
+                          onClick={(e) => {
+                            e.stopPropagation() // ソートハンドラーの発火を防止
+                          }}
                           onMouseDown={(e) => {
                             e.preventDefault() // 親要素のdraggableイベントを抑制
                             e.stopPropagation() // カラム並び替えのドラッグと競合しないようにする
