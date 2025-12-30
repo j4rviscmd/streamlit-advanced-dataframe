@@ -114,16 +114,20 @@ export function ColumnFilter({
 
   // filterValueがオブジェクト（multiselect）かstring（テキスト検索）かを判定
   const isMultiselectFilter =
-    typeof filterValue === 'object' && (filterValue as any)?.type === 'multiselect'
-  const textSearchValue = isMultiselectFilter ? '' : ((filterValue as string) ?? '')
+    typeof filterValue === 'object' &&
+    (filterValue as any)?.type === 'multiselect'
+  const textSearchValue = isMultiselectFilter
+    ? ''
+    : ((filterValue as string) ?? '')
 
   // テキストフィルタの複数選択状態（ユニーク値選択用）
   // filterValueから初期値を取得
   const initialSelectedValues = isMultiselectFilter
     ? ((filterValue as any).values as string[])
     : []
-  const [selectedUniqueValues, setSelectedUniqueValues] =
-    useState<string[]>(initialSelectedValues)
+  const [selectedUniqueValues, setSelectedUniqueValues] = useState<string[]>(
+    initialSelectedValues,
+  )
 
   // filterValueが変更されたら、selectedUniqueValuesも更新
   useEffect(() => {
@@ -241,8 +245,8 @@ export function ColumnFilter({
           className={cn(
             'relative cursor-pointer rounded p-1 transition-all',
             isFiltered
-              ? 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-950/30'
-              : 'text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 opacity-60 hover:opacity-100',
+              ? 'bg-red-50 text-red-600 hover:text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:hover:text-red-300'
+              : 'text-gray-400 opacity-60 hover:text-red-500 hover:opacity-100 dark:text-gray-500 dark:hover:text-red-400',
           )}
           aria-label="フィルタ"
         >
