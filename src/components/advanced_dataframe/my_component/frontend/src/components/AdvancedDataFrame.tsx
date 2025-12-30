@@ -41,8 +41,15 @@ import {
   SortingState,
   useReactTable,
 } from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Streamlit } from 'streamlit-component-lib'
+
+/**
+ * テーブル行の固定高さ（px）
+ * padding(7px*2) + line-height(21px) + borderBottom(1px) = 36px
+ */
+const ROW_HEIGHT = 36
 
 /**
  * AdvancedDataFrameコンポーネント
@@ -648,6 +655,17 @@ export function AdvancedDataFrame({
     },
   })
 
+  // 行の仮想化設定
+  const rowVirtualizer = useVirtualizer({
+    count: table.getRowModel().rows.length,
+    getScrollElement: () => tableRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 5, // スクロール方向に5行余分にレンダリング
+  })
+
+  const virtualRows = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
+
   // 枠線の色（テーマに応じて変更）
   const borderColor = isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
 
@@ -749,6 +767,21 @@ export function AdvancedDataFrame({
     if (totalMatches === 0) return
     setCurrentMatchIndex((prev) => (prev <= 1 ? totalMatches : prev - 1))
   }, [totalMatches])
+
+  /**
+   * 検索マッチへの自動スクロール
+   */
+  useEffect(() => {
+    if (currentMatchIndex > 0 && searchMatches.length > 0) {
+      const currentMatch = searchMatches[currentMatchIndex - 1]
+      if (currentMatch) {
+        rowVirtualizer.scrollToIndex(currentMatch.rowIndex, {
+          align: 'center',
+          behavior: 'smooth',
+        })
+      }
+    }
+  }, [currentMatchIndex, searchMatches, rowVirtualizer])
 
   /**
    * カラムのドラッグ開始
@@ -1233,8 +1266,17 @@ export function AdvancedDataFrame({
             </tr>
           ))}
         </thead>
-        <tbody className="relative z-10">
-          {table.getRowModel().rows.map((row, rowIndex) => {
+        <tbody
+          className="relative z-10"
+          style={{
+            height: `${totalSize}px`,
+            position: 'relative',
+          }}
+        >
+          {virtualRows.map((virtualRow) => {
+            const row = table.getRowModel().rows[virtualRow.index]
+            if (!row) return null
+            const rowIndex = virtualRow.index
             const isFirstRow = rowIndex === 0
             const isLastRow = rowIndex === table.getRowModel().rows.length - 1
             const isRowHovered = hoveredRowIndex === rowIndex
@@ -1251,6 +1293,14 @@ export function AdvancedDataFrame({
             return (
               <tr
                 key={row.id}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
                 onMouseEnter={() => setHoveredRowIndex(rowIndex)}
                 onMouseLeave={() => setHoveredRowIndex(null)}
               >
@@ -1295,6 +1345,8 @@ export function AdvancedDataFrame({
                       )}
                       style={{
                         width: cell.column.getSize(),
+                        height: `${ROW_HEIGHT}px`,
+                        boxSizing: 'border-box',
                         paddingTop: '0.4375rem',
                         paddingBottom: '0.4375rem',
                         borderTop: 'none',
@@ -1347,71 +1399,55 @@ export function AdvancedDataFrame({
                           : () => handleCellMouseEnter(rowIndex, cell.column.id)
                       }
                     >
-                      {/* 上の境界線（横線） - セル間ボーダーを覆うよう拡張 */}
+                      {/* 上の境界線（横線） */}
                       {selectionBorders.top && (
                         <span
-                          className="pointer-events-none absolute top-0 z-10 h-[1px]"
+                          className="pointer-events-none absolute z-20"
                           style={{
                             backgroundColor: theme.primaryColor,
-                            left: selectionBorders.left ? '0' : '-1px',
-                            width: selectionBorders.left
-                              ? selectionBorders.right
-                                ? '100%'
-                                : 'calc(100% + 1px)'
-                              : selectionBorders.right
-                                ? 'calc(100% + 1px)'
-                                : 'calc(100% + 2px)',
+                            top: '-1px',
+                            left: '-1px',
+                            height: '1px',
+                            width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
                           }}
                         />
                       )}
-                      {/* 下の境界線（横線） - セル間ボーダーを覆うよう拡張 */}
+                      {/* 下の境界線（横線） */}
                       {selectionBorders.bottom && (
                         <span
-                          className="pointer-events-none absolute bottom-0 z-10 h-[1px]"
+                          className="pointer-events-none absolute z-20"
                           style={{
                             backgroundColor: theme.primaryColor,
-                            left: selectionBorders.left ? '0' : '-1px',
-                            width: selectionBorders.left
-                              ? selectionBorders.right
-                                ? '100%'
-                                : 'calc(100% + 1px)'
-                              : selectionBorders.right
-                                ? 'calc(100% + 1px)'
-                                : 'calc(100% + 2px)',
+                            bottom: '-1px',
+                            left: '-1px',
+                            height: '1px',
+                            width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
                           }}
                         />
                       )}
-                      {/* 左の境界線（縦線） - セル間ボーダーを覆うよう拡張 */}
+                      {/* 左の境界線（縦線） */}
                       {selectionBorders.left && (
                         <span
-                          className="pointer-events-none absolute left-0 z-10 w-[1px]"
+                          className="pointer-events-none absolute z-20"
                           style={{
                             backgroundColor: theme.primaryColor,
-                            top: selectionBorders.top ? '0' : '-1px',
-                            height: selectionBorders.top
-                              ? selectionBorders.bottom
-                                ? '100%'
-                                : 'calc(100% + 1px)'
-                              : selectionBorders.bottom
-                                ? 'calc(100% + 1px)'
-                                : 'calc(100% + 2px)',
+                            left: '-1px',
+                            top: '-1px',
+                            width: '1px',
+                            height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
                           }}
                         />
                       )}
-                      {/* 右の境界線（縦線） - セル間ボーダーを覆うよう拡張 */}
+                      {/* 右の境界線（縦線） */}
                       {selectionBorders.right && (
                         <span
-                          className="pointer-events-none absolute right-0 z-10 w-[1px]"
+                          className="pointer-events-none absolute z-20"
                           style={{
                             backgroundColor: theme.primaryColor,
-                            top: selectionBorders.top ? '0' : '-1px',
-                            height: selectionBorders.top
-                              ? selectionBorders.bottom
-                                ? '100%'
-                                : 'calc(100% + 1px)'
-                              : selectionBorders.bottom
-                                ? 'calc(100% + 1px)'
-                                : 'calc(100% + 2px)',
+                            right: '-1px',
+                            top: '-1px',
+                            width: '1px',
+                            height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
                           }}
                         />
                       )}

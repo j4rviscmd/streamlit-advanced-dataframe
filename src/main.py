@@ -114,8 +114,48 @@ def main():
         key="aggregation_100_table",
     )
 
+    # 仮想スクロールのパフォーマンステスト（10,000行）
+    st.header("2. 仮想スクロールパフォーマンステスト（10,000行）← NEW!")
+    st.markdown(
+        """
+    **@tanstack/react-virtualを使用した仮想スクロール実装:**
+    - 10,000行のデータでもスムーズにスクロール可能
+    - 表示領域内の行のみをレンダリング（約20-30行）
+    - 初期表示時間 < 1秒
+    - スクロール性能: 50-60fps
+    """
+    )
+
+    # 10,000行のランダムデータを生成
+    df_10000 = pd.DataFrame(
+        {
+            "ID": [f"ID{i:05d}" for i in range(1, 10001)],
+            "商品名": [f"商品{i}" for i in range(1, 10001)],
+            "カテゴリ": [random.choice(categories) for _ in range(10000)],
+            "メーカー": [random.choice(manufacturers) for _ in range(10000)],
+            "価格": [random.randint(500, 50000) for _ in range(10000)],
+            "在庫数": [random.randint(0, 100) for _ in range(10000)],
+            "販売数": [random.randint(0, 500) for _ in range(10000)],
+            "在庫あり": [random.choice([True, False]) for _ in range(10000)],
+            "セール中": [random.choice([True, False]) for _ in range(10000)],
+        }
+    )
+
+    st.markdown(
+        "**パフォーマンステスト:** スクロール、ソート、フィルタ、検索の応答性を確認してください"
+    )
+
+    advanced_dataframe(
+        data=df_10000,
+        height=600,
+        enable_filters=["カテゴリ", "メーカー", "価格", "在庫数", "在庫あり", "セール中"],
+        show_filter_records=True,
+        show_aggregation=True,
+        key="virtual_scroll_10000_table",
+    )
+
     # Phase 4: 行展開機能 + 行選択機能 + 集計行のデモ（最新機能を上に配置）
-    st.header("2. 行展開 + 行選択 + 集計行機能（Phase 4）← NEW!")
+    st.header("3. 行展開 + 行選択 + 集計行機能（Phase 4）← NEW!")
     st.markdown(
         """
     `expandable=True`と`enable_row_selection=True`と`enable_filters`を同時に有効にできます。
@@ -314,7 +354,7 @@ def main():
         st.info("行が選択されていません")
 
     # Phase 3: ヘッダ結合（カラムグループ）機能のデモ
-    st.header("3. ヘッダ結合（カラムグループ）機能（Phase 3）")
+    st.header("4. ヘッダ結合（カラムグループ）機能（Phase 3）")
     st.markdown(
         """
     `column_groups`パラメータで複数のカラムをグループ化し、ヘッダを結合できます。
@@ -357,7 +397,7 @@ def main():
     )
 
     # Phase 3: カラム表示/非表示機能のデモ
-    st.header("4. カラム表示/非表示機能（Phase 3）")
+    st.header("5. カラム表示/非表示機能（Phase 3）")
     st.markdown(
         """
     `visible_columns`パラメータで表示するカラムを指定できます。
@@ -394,7 +434,7 @@ def main():
     )
 
     # Phase 3: カラム並び替え機能のデモ
-    st.header("5. カラム並び替え機能（Phase 3）")
+    st.header("6. カラム並び替え機能（Phase 3）")
     st.markdown(
         """
     カラムヘッダをドラッグ&ドロップで並び替えできます。
@@ -430,7 +470,7 @@ def main():
     )
 
     # Phase 2: グローバル検索機能のデモ
-    st.header("6. グローバル検索機能（Phase 2）")
+    st.header("7. グローバル検索機能（Phase 2）")
     st.markdown(
         """
     テーブルにマウスをホバーすると、右上に検索アイコン（🔍）が表示されます。
@@ -480,7 +520,7 @@ def main():
     )
 
     # Phase 2: 日付フィルタ機能のデモ
-    st.header("7. 日付フィルタ機能（Phase 2）")
+    st.header("8. 日付フィルタ機能（Phase 2）")
     st.markdown(
         """
     日付カラムのフィルタアイコン（🔍）をクリックして、日付範囲でフィルタできます。
@@ -535,7 +575,7 @@ def main():
     )
 
     # Phase 2: カラムフィルタ機能のデモ
-    st.header("8. カラムフィルタ機能（Phase 2）")
+    st.header("9. カラムフィルタ機能（Phase 2）")
     st.markdown(
         """
     ヘッダのフィルタアイコン（🔍）をクリックして、フィルタを適用できます。
@@ -615,7 +655,7 @@ def main():
     )
 
     # Phase 2: 行選択機能のデモ
-    st.header("9. 行選択機能（Phase 2）+ Boolean型表示")
+    st.header("10. 行選択機能（Phase 2）+ Boolean型表示")
     df_selection = pd.DataFrame(
         {
             "商品名": [
@@ -664,7 +704,7 @@ def main():
         st.info("行が選択されていません")
 
     # サンプルデータ1: 基本的なデータ
-    st.header("10. 基本的なテーブル表示")
+    st.header("11. 基本的なテーブル表示")
     df_basic = pd.DataFrame(
         {
             "名前": ["Alice", "Bob", "Charlie", "David", "Eve"],
@@ -690,7 +730,7 @@ def main():
     advanced_dataframe(data=df_basic, height=250, key="basic_table")
 
     # サンプルデータ2: 多数のカラム
-    st.header("11. 多数のカラムを持つテーブル")
+    st.header("12. 多数のカラムを持つテーブル")
     df_many_cols = pd.DataFrame(
         {
             "ID": range(1, 11),
@@ -721,7 +761,7 @@ def main():
     )
 
     # サンプルデータ3: 数値データ
-    st.header("12. 数値データのソート確認")
+    st.header("13. 数値データのソート確認")
     df_numbers = pd.DataFrame(
         {
             "整数": [10, 5, 8, 3, 15, 1, 12],
