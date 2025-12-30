@@ -306,7 +306,6 @@ export function AdvancedDataFrame({
                     borderColor: isDark
                       ? 'rgba(250, 250, 250, 0.4)'
                       : 'rgba(0, 0, 0, 0.3)',
-                    backgroundColor: value ? theme.primaryColor : 'transparent',
                     opacity: 0.7,
                     cursor: 'default',
                   }}
