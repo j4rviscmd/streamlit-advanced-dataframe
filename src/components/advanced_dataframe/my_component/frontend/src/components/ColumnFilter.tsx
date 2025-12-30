@@ -243,7 +243,7 @@ export function ColumnFilter({
           type="button"
           onClick={(e) => e.stopPropagation()} // ソートのトリガーを防止
           className={cn(
-            'relative cursor-pointer rounded p-1 transition-all',
+            'relative flex h-0 cursor-pointer items-center justify-center rounded p-1 transition-all',
             isFiltered
               ? 'bg-red-50 text-red-600 hover:text-red-700 dark:bg-red-950/30 dark:text-red-400 dark:hover:text-red-300'
               : 'text-gray-400 opacity-60 hover:text-red-500 hover:opacity-100 dark:text-gray-500 dark:hover:text-red-400',
