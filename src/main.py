@@ -114,7 +114,7 @@ def main():
         "**パフォーマンステスト:** スクロール、ソート、フィルタ、検索の応答性を確認してください"
     )
 
-    st.dataframe(df_10000)
+    st.dataframe(df_10000, hide_index=True)
     advanced_dataframe(
         data=df_10000,
         height=600,
