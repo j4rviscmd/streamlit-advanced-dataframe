@@ -1569,7 +1569,7 @@ export function AdvancedDataFrame({
               }}
             >
               <tr>
-                {table.getAllLeafColumns().map((column, columnIndex) => {
+                {table.getVisibleLeafColumns().map((column, columnIndex) => {
                   const colId = column.id
                   const isSelectionColumn = colId === '__selection__'
                   const isExpanderColumn = colId === '__expander__'
