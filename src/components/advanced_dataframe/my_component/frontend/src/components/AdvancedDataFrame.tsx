@@ -1143,6 +1143,7 @@ export function AdvancedDataFrame({
           style={{
             borderCollapse: 'separate',
             borderSpacing: 0,
+            tableLayout: 'fixed',
           }}
         >
           <thead
@@ -1156,6 +1157,7 @@ export function AdvancedDataFrame({
               <th
                 colSpan={table.getAllLeafColumns().length}
                 style={{
+                  width: '100%',
                   height: 0,
                   padding: 0,
                   borderTop: `1px solid ${borderColor}`,
@@ -1170,7 +1172,7 @@ export function AdvancedDataFrame({
             </tr>
             {/* 本来のヘッダ行 */}
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <tr className="w-full" key={headerGroup.id}>
                 {headerGroup.headers.map((header, headerIndex) => {
                   const isFirstColumn = headerIndex === 0
                   const isLastColumn =
@@ -1227,6 +1229,8 @@ export function AdvancedDataFrame({
                       )}
                       style={{
                         width: header.getSize(),
+                        minWidth: header.getSize(),
+                        maxWidth: header.getSize(),
                         height: `${ROW_HEIGHT}px`,
                         minHeight: `${ROW_HEIGHT}px`,
                         maxHeight: `${ROW_HEIGHT}px`,
@@ -1244,6 +1248,7 @@ export function AdvancedDataFrame({
                         borderBottom: `1px solid ${borderColor}`,
                         opacity: isDragging ? 0.5 : 1,
                         position: 'relative',
+                        overflow: 'hidden',
                         zIndex: 100 - headerIndex, // 左側のカラムほど高いz-index付与して重なり順を制御(=カラム幅調整つまみエリアを確保)
                       }}
                       onClick={
@@ -1257,16 +1262,18 @@ export function AdvancedDataFrame({
                       onMouseLeave={() => setHoveredHeaderId(null)}
                     >
                       <div className="flex w-full items-center justify-between opacity-70">
-                        <div className="flex items-center gap-1">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                        <div className="flex items-center gap-1 overflow-hidden">
+                          <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                          </span>
                           {/* ソートインジケーター（グループヘッダ以外で、ソート中のみ表示） */}
                           {!isGroupHeader &&
                             header.column.getCanSort() &&
                             header.column.getIsSorted() && (
-                              <span className="text-xs opacity-60">
+                              <span className="text-xs opacity-60 flex-shrink-0">
                                 {header.column.getIsSorted() === 'asc'
                                   ? '↑'
                                   : '↓'}
@@ -1449,6 +1456,8 @@ export function AdvancedDataFrame({
                         )}
                         style={{
                           width: cell.column.getSize(),
+                          minWidth: cell.column.getSize(),
+                          maxWidth: cell.column.getSize(),
                           height: `${ROW_HEIGHT}px`,
                           boxSizing: 'border-box',
                           paddingTop: '0.4375rem',
@@ -1490,7 +1499,7 @@ export function AdvancedDataFrame({
                                       : isRowHovered
                                         ? rowHoverBgColor
                                         : 'transparent',
-                          overflow: 'visible',
+                          overflow: 'hidden',
                           transition: 'background-color 0.1s ease',
                         }}
                         onMouseDown={
@@ -1561,6 +1570,7 @@ export function AdvancedDataFrame({
                         <div className="overflow-hidden text-ellipsis whitespace-nowrap">
                           {isFirstDataColumn && depth > 0 ? (
                             <div
+                              className="overflow-hidden text-ellipsis whitespace-nowrap"
                               style={{
                                 paddingLeft: `${depth * indentSize}px`,
                               }}
@@ -1630,6 +1640,7 @@ export function AdvancedDataFrame({
                           fontWeight: 600,
                           fontSize: '14px',
                           color: textColor,
+                          overflow: 'hidden',
                         }}
                       />
                     )
@@ -1667,9 +1678,12 @@ export function AdvancedDataFrame({
                         color: textColor,
                         textAlign:
                           isNumericColumn || isBoolColumn ? 'right' : 'left',
+                        overflow: 'hidden',
                       }}
                     >
-                      {displayValue}
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {displayValue}
+                      </div>
                     </td>
                   )
                 })}
