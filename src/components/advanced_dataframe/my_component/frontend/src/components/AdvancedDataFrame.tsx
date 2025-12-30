@@ -1243,6 +1243,8 @@ export function AdvancedDataFrame({
                         borderRight: 'none',
                         borderBottom: `1px solid ${borderColor}`,
                         opacity: isDragging ? 0.5 : 1,
+                        position: 'relative',
+                        zIndex: 100 - headerIndex, // 左側のカラムほど高いz-index付与して重なり順を制御(=カラム幅調整つまみエリアを確保)
                       }}
                       onClick={
                         !isGroupHeader &&
@@ -1297,27 +1299,49 @@ export function AdvancedDataFrame({
                       {/* カラムリサイズハンドル（グループヘッダ以外） */}
                       {!isGroupHeader && header.column.getCanResize() && (
                         <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className="absolute top-0 right-0 h-full w-[5px] cursor-col-resize touch-none transition-opacity duration-200 select-none"
+                          onMouseDown={(e) => {
+                            e.preventDefault() // 親要素のdraggableイベントを抑制
+                            e.stopPropagation() // カラム並び替えのドラッグと競合しないようにする
+                            header.getResizeHandler()(e)
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault() // 親要素のdraggableイベントを抑制
+                            e.stopPropagation() // カラム並び替えのドラッグと競合しないようにする
+                            header.getResizeHandler()(e as any)
+                          }}
+                          className="resize-handle absolute top-0 h-full w-2.5 cursor-col-resize touch-none select-none"
                           style={{
-                            opacity: header.column.getIsResizing() ? 1 : 0,
+                            right: '-5px', // カラム境界線の両側に配置（左右5pxずつ）
+                            opacity: header.column.getIsResizing() ? 1 : 0.15, // 通常時も薄く表示
+                            transition: 'opacity 0.15s ease',
+                            zIndex: 1, // 親th内で最前面
                           }}
                           onMouseEnter={(e) => {
-                            ;(e.target as HTMLElement).style.opacity = '0.3'
+                            if (!header.column.getIsResizing()) {
+                              const handleElement =
+                                e.currentTarget as HTMLElement
+                              const thElement =
+                                handleElement.parentElement as HTMLElement
+                              handleElement.style.opacity = '0.6' // ホバー時に濃く表示
+                              if (thElement) {
+                                thElement.style.zIndex = '31' // 親th要素を最前面に
+                              }
+                            }
                           }}
                           onMouseLeave={(e) => {
                             if (!header.column.getIsResizing()) {
-                              ;(e.target as HTMLElement).style.opacity = '0'
+                              const handleElement =
+                                e.currentTarget as HTMLElement
+                              const thElement =
+                                handleElement.parentElement as HTMLElement
+                              handleElement.style.opacity = '0.15' // 元に戻す
+                              if (thElement) {
+                                thElement.style.zIndex = '' // z-indexをリセット
+                              }
                             }
                           }}
                         >
-                          <div
-                            className="h-full w-full"
-                            style={{
-                              backgroundColor: theme.primaryColor,
-                            }}
-                          />
+                          <div className="h-full w-full" />
                         </div>
                       )}
                     </th>
