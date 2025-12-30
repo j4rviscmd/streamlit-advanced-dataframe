@@ -24,6 +24,7 @@ function MyComponent() {
   const columnGroups = renderData.args['column_groups']
   const expandable = renderData.args['expandable']
   const subRowsKey = renderData.args['sub_rows_key']
+  const showAggregation = renderData.args['show_aggregation']
 
   // StreamlitPropsに変換
   const props: StreamlitProps = {
@@ -37,6 +38,7 @@ function MyComponent() {
     columnGroups,
     expandable,
     subRowsKey,
+    showAggregation,
   }
 
   // データやpropsが変わった時にStreamlitにフレームの高さを通知

@@ -110,7 +110,7 @@ def main():
             "新商品",
         ],
         show_filter_records=True,
-        show_aggregation=True,
+        show_aggregation=False,
         key="aggregation_100_table",
     )
 
@@ -145,10 +145,18 @@ def main():
         "**パフォーマンステスト:** スクロール、ソート、フィルタ、検索の応答性を確認してください"
     )
 
+    st.dataframe(df_10000)
     advanced_dataframe(
         data=df_10000,
         height=600,
-        enable_filters=["カテゴリ", "メーカー", "価格", "在庫数", "在庫あり", "セール中"],
+        # enable_filters=[
+        #     "カテゴリ",
+        #     "メーカー",
+        #     "価格",
+        #     "在庫数",
+        #     "在庫あり",
+        #     "セール中",
+        # ],
         show_filter_records=True,
         show_aggregation=True,
         key="virtual_scroll_10000_table",

@@ -92,7 +92,8 @@ export function AdvancedDataFrame({
       setTimeout(() => {
         // document.body.scrollHeightではなく、実際のテーブルコンテナの高さを測定
         // （iframeの高さが固定されている場合、body.scrollHeightは縮小されないため）
-        const newHeight = tableRef.current?.scrollHeight || document.body.scrollHeight
+        const newHeight =
+          tableRef.current?.scrollHeight || document.body.scrollHeight
         // 高さが実際に変わった場合のみsetFrameHeightを呼ぶ（無限ループ防止）
         if (newHeight !== previousHeightRef.current) {
           previousHeightRef.current = newHeight
@@ -138,7 +139,9 @@ export function AdvancedDataFrame({
   const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null)
 
   // カラムの可視性状態管理（Phase 3）
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({})
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >({})
 
   /**
    * 背景色を明るくする関数
@@ -243,61 +246,6 @@ export function AdvancedDataFrame({
   }, [data, columns])
 
   /**
-   * 集計行の値を計算（親行のみを対象）
-   * - 数値カラム: 合計
-   * - Boolカラム: True率（%）
-   * - その他: 空白
-   */
-  const aggregationRow = useMemo(() => {
-    if (!showAggregation) return null
-
-    // 親行のみを抽出（階層データの場合）
-    const parentRows = expandable
-      ? data.filter((row) => {
-          // subRowsKeyを持つ行が親行
-          // または、すべての行が親行として扱われる（expandableがfalseの場合）
-          return true // dataはすでに親行のみを含んでいる
-        })
-      : data
-
-    const aggregation: Record<string, string | number> = {}
-
-    columns.forEach((col) => {
-      const colId = col.id
-      const values = parentRows
-        .map((row) => row[colId])
-        .filter((val) => val != null)
-
-      if (values.length === 0) {
-        aggregation[colId] = ''
-        return
-      }
-
-      // Boolean型カラムの場合: True率を計算
-      if (booleanColumns.has(colId)) {
-        const boolValues = values as boolean[]
-        const trueCount = boolValues.filter((v) => v === true).length
-        const percentage = (trueCount / boolValues.length) * 100
-        aggregation[colId] = `${Math.round(percentage)}%`
-        return
-      }
-
-      // 数値カラムの場合: 合計を計算
-      const allNumbers = values.every((val) => typeof val === 'number')
-      if (allNumbers) {
-        const sum = (values as number[]).reduce((acc, val) => acc + val, 0)
-        aggregation[colId] = sum
-        return
-      }
-
-      // その他（テキスト、日付など）: 空白
-      aggregation[colId] = ''
-    })
-
-    return aggregation
-  }, [showAggregation, data, columns, booleanColumns, expandable])
-
-  /**
    * カラムタイプマップを取得（フィルタUIの種類を決定）
    */
   const columnTypeMap = useColumnType(data, columns)
@@ -335,7 +283,9 @@ export function AdvancedDataFrame({
   const columnHelper = createColumnHelper<RowData>()
   const tableColumns: ColumnDef<RowData, unknown>[] = useMemo(() => {
     // カラム定義を作成する共通関数
-    const createColumnDef = (col: ColumnConfig): ColumnDef<RowData, unknown> => {
+    const createColumnDef = (
+      col: ColumnConfig,
+    ): ColumnDef<RowData, unknown> => {
       return columnHelper.accessor(col.id, {
         id: col.id,
         header: col.header,
@@ -575,7 +525,9 @@ export function AdvancedDataFrame({
                       ? 'rgba(250, 250, 250, 0.4)'
                       : 'rgba(0, 0, 0, 0.3)',
                   // チェック時の背景色をStreamlitテーマカラーに
-                  backgroundColor: isChecked ? theme.primaryColor : 'transparent',
+                  backgroundColor: isChecked
+                    ? theme.primaryColor
+                    : 'transparent',
                 }}
               />
             </div>
@@ -600,7 +552,7 @@ export function AdvancedDataFrame({
           return (
             <button
               onClick={row.getToggleExpandedHandler()}
-              className="inline-flex items-center justify-center w-full h-full"
+              className="inline-flex h-full w-full items-center justify-center"
               style={{ cursor: 'pointer' }}
             >
               {row.getIsExpanded() ? '▼' : '▶'}
@@ -643,7 +595,7 @@ export function AdvancedDataFrame({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getExpandedRowModel: expandable ? getExpandedRowModel() : undefined,
-    getSubRows: expandable ? (row) => (row[subRowsKey] as RowData[]) : undefined,
+    getSubRows: expandable ? (row) => row[subRowsKey] as RowData[] : undefined,
     columnResizeMode,
     enableSortingRemoval: true,
     enableMultiSort: false, // Phase 1では単一カラムソートのみ
@@ -654,6 +606,68 @@ export function AdvancedDataFrame({
       maxSize: 500,
     },
   })
+
+  /**
+   * 集計行の値を計算（フィルタ・ソート後のデータを使用、親行のみを対象）
+   * - 数値カラム: 合計
+   * - Boolカラム: True率（%）
+   * - その他: 空白
+   */
+  const aggregationRow = useMemo(() => {
+    if (!showAggregation) return null
+
+    // フィルタ・ソート後の行データを取得
+    const rows = table.getRowModel().rows
+
+    // 親行のみを抽出（階層データの場合）
+    const parentRows = expandable
+      ? rows
+          .filter((row) => row.depth === 0) // 深度0が親行
+          .map((row) => row.original)
+      : rows.map((row) => row.original)
+
+    const aggregation: Record<string, string | number> = {}
+
+    columns.forEach((col) => {
+      const colId = col.id
+      const values = parentRows
+        .map((row) => row[colId])
+        .filter((val) => val != null)
+
+      if (values.length === 0) {
+        aggregation[colId] = ''
+        return
+      }
+
+      // Boolean型カラムの場合: True率を計算
+      if (booleanColumns.has(colId)) {
+        const boolValues = values as boolean[]
+        const trueCount = boolValues.filter((v) => v === true).length
+        const percentage = (trueCount / boolValues.length) * 100
+        aggregation[colId] = `${Math.round(percentage)}%`
+        return
+      }
+
+      // 数値カラムの場合: 合計を計算
+      const allNumbers = values.every((val) => typeof val === 'number')
+      if (allNumbers) {
+        const sum = (values as number[]).reduce((acc, val) => acc + val, 0)
+        aggregation[colId] = sum
+        return
+      }
+
+      // その他（テキスト、日付など）: 空白
+      aggregation[colId] = ''
+    })
+
+    return aggregation
+  }, [
+    showAggregation,
+    table.getRowModel().rows,
+    columns,
+    booleanColumns,
+    expandable,
+  ])
 
   // 行の仮想化設定
   const rowVirtualizer = useVirtualizer({
@@ -1099,408 +1113,502 @@ export function AdvancedDataFrame({
       <div
         ref={tableRef}
         className={cn(
-          'relative overflow-auto rounded-md border',
+          'relative max-w-full overflow-auto rounded-md',
           fullWidth ? 'w-full' : 'w-fit',
         )}
         style={{
           maxHeight: height ? `${height}px` : 'none',
-          maxWidth: '100%', // full_width=falseのときも親要素を超えないようにする
+          boxSizing: 'border-box',
+          borderLeft: `1px solid ${borderColor}`,
+          borderRight: `1px solid ${borderColor}`,
+          borderBottom: `1px solid ${borderColor}`,
+          borderRadius: '0.375rem',
           fontFamily: theme.font,
           color: textColor,
-          borderColor: borderColor,
         }}
         onMouseEnter={() => setIsTableHovered(true)}
         onMouseLeave={() => setIsTableHovered(false)}
       >
-      {/* テーブルツールバー（検索機能など） */}
-      <TableToolbar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        currentMatchIndex={currentMatchIndex}
-        totalMatches={totalMatches}
-        onNextMatch={handleNextMatch}
-        onPrevMatch={handlePrevMatch}
-        isVisible={isTableHovered}
-      />
-      <table
-        className={cn(fullWidth ? 'w-full' : 'w-fit')}
-        style={{ borderCollapse: 'separate', borderSpacing: 0 }}
-      >
-        <thead className="sticky top-0 z-20">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header, headerIndex) => {
-                const isFirstColumn = headerIndex === 0
-                const isLastColumn =
-                  headerIndex === headerGroup.headers.length - 1
-
-                // グループヘッダかどうか（子カラムを持つ場合）
-                const isGroupHeader = header.subHeaders && header.subHeaders.length > 0
-                const isHovered = hoveredHeaderId === header.id
-                const isNumeric = numericColumns.has(header.column.id)
-                const isBoolean = booleanColumns.has(header.column.id)
-                const isSelectionColumn = header.column.id === '__selection__'
-                const isExpanderColumn = header.column.id === '__expander__'
-                const isDragging = draggedColumnId === header.column.id
-                // グループヘッダ、選択カラム、展開カラムはドラッグ不可
-                const isDraggable = !isSelectionColumn && !isExpanderColumn && !isGroupHeader
-                // 数値カラムまたはboolean型カラムは中央揃え
-                const isCentered = isNumeric || isBoolean
-
-                return (
-                  <th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    draggable={isDraggable}
-                    onDragStart={
-                      isDraggable
-                        ? (e) => handleColumnDragStart(header.column.id, e)
-                        : undefined
-                    }
-                    onDragOver={isDraggable ? handleColumnDragOver : undefined}
-                    onDrop={
-                      isDraggable
-                        ? (e) => handleColumnDrop(header.column.id, e)
-                        : undefined
-                    }
-                    onDragEnd={isDraggable ? handleColumnDragEnd : undefined}
-                    className={cn(
-                      'sticky top-0 z-20 px-3 text-sm font-light transition-colors duration-150 select-none',
-                      isBoolean
-                        ? 'text-center'
-                        : isNumeric
-                          ? 'text-right'
-                          : 'text-left',
-                      // グループヘッダ、選択カラム、展開カラムはソート不可
-                      !isGroupHeader && !isSelectionColumn && !isExpanderColumn && header.column.getCanSort()
-                        ? 'cursor-pointer'
-                        : 'cursor-default',
-                    )}
-                    style={{
-                      width: header.getSize(),
-                      paddingTop: '0.4375rem',
-                      paddingBottom: '0.4375rem',
-                      backgroundColor: isHovered
-                        ? headerHoverBgColor
-                        : headerNormalBgColor,
-                      borderTop: 'none',
-                      borderLeft: isFirstColumn
-                        ? 'none'
-                        : `1px solid ${borderColor}`,
-                      borderRight: 'none',
-                      borderBottom: `1px solid ${borderColor}`,
-                      opacity: isDragging ? 0.5 : 1,
-                    }}
-                    onClick={
-                      !isGroupHeader && !isSelectionColumn && !isExpanderColumn
-                        ? header.column.getToggleSortingHandler()
-                        : undefined
-                    }
-                    onMouseEnter={() => setHoveredHeaderId(header.id)}
-                    onMouseLeave={() => setHoveredHeaderId(null)}
-                  >
-                    <div className="flex items-center justify-between w-full opacity-70">
-                      <div className="flex items-center gap-1">
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                        {/* ソートインジケーター（グループヘッダ以外で、ソート中のみ表示） */}
-                        {!isGroupHeader &&
-                          header.column.getCanSort() &&
-                          header.column.getIsSorted() && (
-                            <span className="text-xs opacity-60">
-                              {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
-                            </span>
-                          )}
-                      </div>
-                      {/* フィルタアイコン（グループヘッダ以外で、フィルタ有効カラムのみ、右端に配置） */}
-                      {!isGroupHeader && columnTypeMap.has(header.column.id) && (
-                        <ColumnFilter
-                          column={header.column}
-                          columnType={columnTypeMap.get(header.column.id)!}
-                          uniqueValues={uniqueValuesMap.get(header.column.id)}
-                          onOpenChange={(open) => {
-                            // Popover開いている間はヘッダのホバー状態をクリア
-                            if (open) {
-                              setHoveredHeaderId(null)
-                            }
-                          }}
-                          onPopoverMouseEnter={() => {
-                            // Popoverコンテンツにマウスが入ったらヘッダのホバー状態をクリア
-                            setHoveredHeaderId(null)
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    {/* カラムリサイズハンドル（グループヘッダ以外） */}
-                    {!isGroupHeader && header.column.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className="absolute top-0 right-0 h-full w-[5px] cursor-col-resize touch-none transition-opacity duration-200 select-none"
-                        style={{
-                          opacity: header.column.getIsResizing() ? 1 : 0,
-                        }}
-                        onMouseEnter={(e) => {
-                          ;(e.target as HTMLElement).style.opacity = '0.3'
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!header.column.getIsResizing()) {
-                            ;(e.target as HTMLElement).style.opacity = '0'
-                          }
-                        }}
-                      >
-                        <div
-                          className="h-full w-full"
-                          style={{
-                            backgroundColor: theme.primaryColor,
-                          }}
-                        />
-                      </div>
-                    )}
-                  </th>
-                )
-              })}
-            </tr>
-          ))}
-        </thead>
-        <tbody
-          className="relative z-10"
+        {/* 上辺ボーダー専用要素（theadより前面に表示） */}
+        <div
+          className="pointer-events-none sticky top-0 right-0 left-0 z-40"
           style={{
-            height: `${totalSize}px`,
-            position: 'relative',
+            height: 0,
+            borderTop: `1px solid ${borderColor}`,
+            borderTopLeftRadius: '0.375rem',
+            borderTopRightRadius: '0.375rem',
+          }}
+        />
+        {/* テーブルツールバー（検索機能など） */}
+        <TableToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          currentMatchIndex={currentMatchIndex}
+          totalMatches={totalMatches}
+          onNextMatch={handleNextMatch}
+          onPrevMatch={handlePrevMatch}
+          isVisible={isTableHovered}
+        />
+        <table
+          className={cn(fullWidth ? 'w-full' : 'min-w-max')}
+          style={{
+            borderCollapse: 'separate',
+            borderSpacing: 0,
           }}
         >
-          {virtualRows.map((virtualRow) => {
-            const row = table.getRowModel().rows[virtualRow.index]
-            if (!row) return null
-            const rowIndex = virtualRow.index
-            const isFirstRow = rowIndex === 0
-            const isLastRow = rowIndex === table.getRowModel().rows.length - 1
-            const isRowHovered = hoveredRowIndex === rowIndex
-            // 行選択のハイライト判定: 元データのインデックスで比較
-            const rowOriginalIndex =
-              row.depth === 0
-                ? data.findIndex((item) => item === row.original)
-                : -1
-            const isRowSelected =
-              enableRowSelection &&
-              rowOriginalIndex !== -1 &&
-              selectedRowIndex === rowOriginalIndex
-
-            return (
-              <tr
-                key={row.id}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualRow.size}px`,
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-                onMouseEnter={() => setHoveredRowIndex(rowIndex)}
-                onMouseLeave={() => setHoveredRowIndex(null)}
-              >
-                {row.getVisibleCells().map((cell, cellIndex) => {
-                  const isFirstColumn = cellIndex === 0
+          <thead
+            className="sticky z-20"
+            style={{
+              top: '0px',
+            }}
+          >
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header, headerIndex) => {
+                  const isFirstColumn = headerIndex === 0
                   const isLastColumn =
-                    cellIndex === row.getVisibleCells().length - 1
+                    headerIndex === headerGroup.headers.length - 1
 
-                  // 選択範囲がないときは選択判定をスキップ（パフォーマンス最適化）
-                  const isSelected = selectedCells.length > 0 ? isCellSelected(rowIndex, cell.column.id) : false
-                  const selectionBorders = selectedCells.length > 0
-                    ? getSelectionBorders(rowIndex, cell.column.id)
-                    : { top: false, right: false, bottom: false, left: false }
-                  const isNumeric = numericColumns.has(cell.column.id)
-                  const isBoolean = booleanColumns.has(cell.column.id)
-                  const isSelectionColumn = cell.column.id === '__selection__'
-                  const isExpanderColumn = cell.column.id === '__expander__'
-                  // 検索クエリがないときは一致判定をスキップ（パフォーマンス最適化）
-                  const isMatched = searchQuery ? isCellMatched(rowIndex, cell.column.id) : false
-                  const isCurrentMatchCell = searchQuery ? isCurrentMatch(rowIndex, cell.column.id) : false
-
-                  // 最初のデータカラムかどうか（ツリー線表示用）
-                  const specialColumnsCount =
-                    (enableRowSelection ? 1 : 0) + (expandable ? 1 : 0)
-                  const isFirstDataColumn = cellIndex === specialColumnsCount
-
-                  // ツリー線の深さとインデント
-                  const depth = row.depth
-                  const indentSize = 24 // px per level
+                  // グループヘッダかどうか（子カラムを持つ場合）
+                  const isGroupHeader =
+                    header.subHeaders && header.subHeaders.length > 0
+                  const isHovered = hoveredHeaderId === header.id
+                  const isNumeric = numericColumns.has(header.column.id)
+                  const isBoolean = booleanColumns.has(header.column.id)
+                  const isSelectionColumn = header.column.id === '__selection__'
+                  const isExpanderColumn = header.column.id === '__expander__'
+                  const isDragging = draggedColumnId === header.column.id
+                  // グループヘッダ、選択カラム、展開カラムはドラッグ不可
+                  const isDraggable =
+                    !isSelectionColumn && !isExpanderColumn && !isGroupHeader
+                  // 数値カラムまたはboolean型カラムは中央揃え
+                  const isCentered = isNumeric || isBoolean
 
                   return (
-                    <td
-                      key={cell.id}
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      draggable={isDraggable}
+                      onDragStart={
+                        isDraggable
+                          ? (e) => handleColumnDragStart(header.column.id, e)
+                          : undefined
+                      }
+                      onDragOver={
+                        isDraggable ? handleColumnDragOver : undefined
+                      }
+                      onDrop={
+                        isDraggable
+                          ? (e) => handleColumnDrop(header.column.id, e)
+                          : undefined
+                      }
+                      onDragEnd={isDraggable ? handleColumnDragEnd : undefined}
                       className={cn(
-                        'relative px-3 text-sm select-none',
-                        isSelectionColumn || isExpanderColumn ? '' : 'cursor-cell',
+                        'px-3 text-sm font-light transition-colors duration-150 select-none',
                         isBoolean
                           ? 'text-center'
                           : isNumeric
                             ? 'text-right'
                             : 'text-left',
+                        // グループヘッダ、選択カラム、展開カラムはソート不可
+                        !isGroupHeader &&
+                          !isSelectionColumn &&
+                          !isExpanderColumn &&
+                          header.column.getCanSort()
+                          ? 'cursor-pointer'
+                          : 'cursor-default',
                       )}
                       style={{
-                        width: cell.column.getSize(),
+                        width: header.getSize(),
                         height: `${ROW_HEIGHT}px`,
+                        minHeight: `${ROW_HEIGHT}px`,
+                        maxHeight: `${ROW_HEIGHT}px`,
                         boxSizing: 'border-box',
                         paddingTop: '0.4375rem',
                         paddingBottom: '0.4375rem',
+                        backgroundColor: isHovered
+                          ? headerHoverBgColor
+                          : headerNormalBgColor,
                         borderTop: 'none',
                         borderLeft: isFirstColumn
                           ? 'none'
                           : `1px solid ${borderColor}`,
                         borderRight: 'none',
-                        borderBottom: isLastRow
-                          ? 'none'
-                          : `1px solid ${borderColor}`,
-                        backgroundColor: isSelectionColumn || isExpanderColumn
-                          ? isRowSelected
-                            ? isDark
-                              ? 'rgba(239, 68, 68, 0.15)'
-                              : 'rgba(239, 68, 68, 0.1)'
-                            : isRowHovered
-                              ? headerHoverBgColor
-                              : headerNormalBgColor
-                          : isCurrentMatchCell
-                            ? isDark
-                              ? 'rgba(239, 68, 68, 0.3)'
-                              : 'rgba(239, 68, 68, 0.25)'
-                            : isMatched
-                              ? isDark
-                                ? 'rgba(239, 68, 68, 0.15)'
-                                : 'rgba(239, 68, 68, 0.1)'
-                              : isSelected
-                                ? isDark
-                                  ? `${theme.primaryColor}20`
-                                  : `${theme.primaryColor}15`
-                                : isRowSelected
-                                  ? isDark
-                                    ? 'rgba(239, 68, 68, 0.15)'
-                                    : 'rgba(239, 68, 68, 0.1)'
-                                  : isRowHovered
-                                    ? rowHoverBgColor
-                                    : 'transparent',
-                        overflow: 'visible',
-                        transition: 'background-color 0.1s ease',
+                        borderBottom: `1px solid ${borderColor}`,
+                        opacity: isDragging ? 0.5 : 1,
                       }}
-                      onMouseDown={
-                        isSelectionColumn || isExpanderColumn
-                          ? undefined
-                          : (e) =>
-                              handleCellMouseDown(rowIndex, cell.column.id, e)
+                      onClick={
+                        !isGroupHeader &&
+                        !isSelectionColumn &&
+                        !isExpanderColumn
+                          ? header.column.getToggleSortingHandler()
+                          : undefined
                       }
-                      onMouseEnter={
-                        isSelectionColumn || isExpanderColumn
-                          ? undefined
-                          : () => handleCellMouseEnter(rowIndex, cell.column.id)
-                      }
+                      onMouseEnter={() => setHoveredHeaderId(header.id)}
+                      onMouseLeave={() => setHoveredHeaderId(null)}
                     >
-                      {/* 上の境界線（横線） */}
-                      {selectionBorders.top && (
-                        <span
-                          className="pointer-events-none absolute z-20"
-                          style={{
-                            backgroundColor: theme.primaryColor,
-                            top: '-1px',
-                            left: '-1px',
-                            height: '1px',
-                            width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
-                          }}
-                        />
-                      )}
-                      {/* 下の境界線（横線） */}
-                      {selectionBorders.bottom && (
-                        <span
-                          className="pointer-events-none absolute z-20"
-                          style={{
-                            backgroundColor: theme.primaryColor,
-                            bottom: '-1px',
-                            left: '-1px',
-                            height: '1px',
-                            width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
-                          }}
-                        />
-                      )}
-                      {/* 左の境界線（縦線） */}
-                      {selectionBorders.left && (
-                        <span
-                          className="pointer-events-none absolute z-20"
-                          style={{
-                            backgroundColor: theme.primaryColor,
-                            left: '-1px',
-                            top: '-1px',
-                            width: '1px',
-                            height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
-                          }}
-                        />
-                      )}
-                      {/* 右の境界線（縦線） */}
-                      {selectionBorders.right && (
-                        <span
-                          className="pointer-events-none absolute z-20"
-                          style={{
-                            backgroundColor: theme.primaryColor,
-                            right: '-1px',
-                            top: '-1px',
-                            width: '1px',
-                            height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
-                          }}
-                        />
-                      )}
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        {isFirstDataColumn && depth > 0 ? (
-                          <div
-                            style={{
-                              paddingLeft: `${depth * indentSize}px`,
-                            }}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
+                      <div className="flex w-full items-center justify-between opacity-70">
+                        <div className="flex items-center gap-1">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                          {/* ソートインジケーター（グループヘッダ以外で、ソート中のみ表示） */}
+                          {!isGroupHeader &&
+                            header.column.getCanSort() &&
+                            header.column.getIsSorted() && (
+                              <span className="text-xs opacity-60">
+                                {header.column.getIsSorted() === 'asc'
+                                  ? '↑'
+                                  : '↓'}
+                              </span>
                             )}
-                          </div>
-                        ) : (
-                          flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )
-                        )}
+                        </div>
+                        {/* フィルタアイコン（グループヘッダ以外で、フィルタ有効カラムのみ、右端に配置） */}
+                        {!isGroupHeader &&
+                          columnTypeMap.has(header.column.id) && (
+                            <ColumnFilter
+                              column={header.column}
+                              columnType={columnTypeMap.get(header.column.id)!}
+                              uniqueValues={uniqueValuesMap.get(
+                                header.column.id,
+                              )}
+                              onOpenChange={(open) => {
+                                // Popover開いている間はヘッダのホバー状態をクリア
+                                if (open) {
+                                  setHoveredHeaderId(null)
+                                }
+                              }}
+                              onPopoverMouseEnter={() => {
+                                // Popoverコンテンツにマウスが入ったらヘッダのホバー状態をクリア
+                                setHoveredHeaderId(null)
+                              }}
+                            />
+                          )}
                       </div>
-                    </td>
+
+                      {/* カラムリサイズハンドル（グループヘッダ以外） */}
+                      {!isGroupHeader && header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className="absolute top-0 right-0 h-full w-[5px] cursor-col-resize touch-none transition-opacity duration-200 select-none"
+                          style={{
+                            opacity: header.column.getIsResizing() ? 1 : 0,
+                          }}
+                          onMouseEnter={(e) => {
+                            ;(e.target as HTMLElement).style.opacity = '0.3'
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!header.column.getIsResizing()) {
+                              ;(e.target as HTMLElement).style.opacity = '0'
+                            }
+                          }}
+                        >
+                          <div
+                            className="h-full w-full"
+                            style={{
+                              backgroundColor: theme.primaryColor,
+                            }}
+                          />
+                        </div>
+                      )}
+                    </th>
                   )
                 })}
               </tr>
-            )
-          })}
-        </tbody>
-
-        {/* 集計行（フッター） */}
-        {showAggregation && aggregationRow && (
-          <tfoot
-            className="relative z-20"
+            ))}
+          </thead>
+          <tbody
+            className="relative z-10"
             style={{
-              position: 'sticky',
-              bottom: 0,
+              height: `${totalSize}px`,
+              position: 'relative',
             }}
           >
-            <tr>
-              {table.getAllLeafColumns().map((column, columnIndex) => {
-                const colId = column.id
-                const isSelectionColumn = colId === '__selection__'
-                const isExpanderColumn = colId === '__expander__'
-                const isFirstColumn = columnIndex === 0
+            {virtualRows.map((virtualRow, virtualIndex) => {
+              const row = table.getRowModel().rows[virtualRow.index]
+              if (!row) return null
+              const rowIndex = virtualRow.index
+              const isFirstRow = rowIndex === 0
+              const isLastRow = rowIndex === table.getRowModel().rows.length - 1
+              // 仮想スクロールで表示されている最後の行（集計行がない場合のボーダー制御）
+              const isLastVirtualRow = virtualIndex === virtualRows.length - 1
+              const isRowHovered = hoveredRowIndex === rowIndex
+              // 行選択のハイライト判定: 元データのインデックスで比較
+              const rowOriginalIndex =
+                row.depth === 0
+                  ? data.findIndex((item) => item === row.original)
+                  : -1
+              const isRowSelected =
+                enableRowSelection &&
+                rowOriginalIndex !== -1 &&
+                selectedRowIndex === rowOriginalIndex
 
-                // 集計行の背景色（通常より少しだけ暗め、不透明）
-                const aggregationBgColor = isDark
-                  ? '#1E1E1E' // ダークモード: 濃いグレー
-                  : '#F5F5F5' // ライトモード: 明るいグレー
+              return (
+                <tr
+                  key={row.id}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  onMouseEnter={() => setHoveredRowIndex(rowIndex)}
+                  onMouseLeave={() => setHoveredRowIndex(null)}
+                >
+                  {row.getVisibleCells().map((cell, cellIndex) => {
+                    const isFirstColumn = cellIndex === 0
+                    const isLastColumn =
+                      cellIndex === row.getVisibleCells().length - 1
 
-                // 選択・展開カラムは空セル
-                if (isSelectionColumn || isExpanderColumn) {
+                    // 選択範囲がないときは選択判定をスキップ（パフォーマンス最適化）
+                    const isSelected =
+                      selectedCells.length > 0
+                        ? isCellSelected(rowIndex, cell.column.id)
+                        : false
+                    const selectionBorders =
+                      selectedCells.length > 0
+                        ? getSelectionBorders(rowIndex, cell.column.id)
+                        : {
+                            top: false,
+                            right: false,
+                            bottom: false,
+                            left: false,
+                          }
+                    const isNumeric = numericColumns.has(cell.column.id)
+                    const isBoolean = booleanColumns.has(cell.column.id)
+                    const isSelectionColumn = cell.column.id === '__selection__'
+                    const isExpanderColumn = cell.column.id === '__expander__'
+                    // 検索クエリがないときは一致判定をスキップ（パフォーマンス最適化）
+                    const isMatched = searchQuery
+                      ? isCellMatched(rowIndex, cell.column.id)
+                      : false
+                    const isCurrentMatchCell = searchQuery
+                      ? isCurrentMatch(rowIndex, cell.column.id)
+                      : false
+
+                    // 最初のデータカラムかどうか（ツリー線表示用）
+                    const specialColumnsCount =
+                      (enableRowSelection ? 1 : 0) + (expandable ? 1 : 0)
+                    const isFirstDataColumn = cellIndex === specialColumnsCount
+
+                    // ツリー線の深さとインデント
+                    const depth = row.depth
+                    const indentSize = 24 // px per level
+
+                    return (
+                      <td
+                        key={cell.id}
+                        className={cn(
+                          'relative px-3 text-sm select-none',
+                          isSelectionColumn || isExpanderColumn
+                            ? ''
+                            : 'cursor-cell',
+                          isBoolean
+                            ? 'text-center'
+                            : isNumeric
+                              ? 'text-right'
+                              : 'text-left',
+                        )}
+                        style={{
+                          width: cell.column.getSize(),
+                          height: `${ROW_HEIGHT}px`,
+                          boxSizing: 'border-box',
+                          paddingTop: '0.4375rem',
+                          paddingBottom: '0.4375rem',
+                          borderTop: 'none',
+                          borderLeft: isFirstColumn
+                            ? 'none'
+                            : `1px solid ${borderColor}`,
+                          borderRight: 'none',
+                          borderBottom:
+                            isLastRow || (isLastVirtualRow && !showAggregation)
+                              ? 'none'
+                              : `1px solid ${borderColor}`,
+                          backgroundColor:
+                            isSelectionColumn || isExpanderColumn
+                              ? isRowSelected
+                                ? isDark
+                                  ? 'rgba(239, 68, 68, 0.15)'
+                                  : 'rgba(239, 68, 68, 0.1)'
+                                : isRowHovered
+                                  ? headerHoverBgColor
+                                  : headerNormalBgColor
+                              : isCurrentMatchCell
+                                ? isDark
+                                  ? 'rgba(239, 68, 68, 0.3)'
+                                  : 'rgba(239, 68, 68, 0.25)'
+                                : isMatched
+                                  ? isDark
+                                    ? 'rgba(239, 68, 68, 0.15)'
+                                    : 'rgba(239, 68, 68, 0.1)'
+                                  : isSelected
+                                    ? isDark
+                                      ? `${theme.primaryColor}20`
+                                      : `${theme.primaryColor}15`
+                                    : isRowSelected
+                                      ? isDark
+                                        ? 'rgba(239, 68, 68, 0.15)'
+                                        : 'rgba(239, 68, 68, 0.1)'
+                                      : isRowHovered
+                                        ? rowHoverBgColor
+                                        : 'transparent',
+                          overflow: 'visible',
+                          transition: 'background-color 0.1s ease',
+                        }}
+                        onMouseDown={
+                          isSelectionColumn || isExpanderColumn
+                            ? undefined
+                            : (e) =>
+                                handleCellMouseDown(rowIndex, cell.column.id, e)
+                        }
+                        onMouseEnter={
+                          isSelectionColumn || isExpanderColumn
+                            ? undefined
+                            : () =>
+                                handleCellMouseEnter(rowIndex, cell.column.id)
+                        }
+                      >
+                        {/* 上の境界線（横線） */}
+                        {selectionBorders.top && (
+                          <span
+                            className="pointer-events-none absolute z-20"
+                            style={{
+                              backgroundColor: theme.primaryColor,
+                              top: '-1px',
+                              left: '-1px',
+                              height: '1px',
+                              width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                            }}
+                          />
+                        )}
+                        {/* 下の境界線（横線） */}
+                        {selectionBorders.bottom && (
+                          <span
+                            className="pointer-events-none absolute z-20"
+                            style={{
+                              backgroundColor: theme.primaryColor,
+                              bottom: '-1px',
+                              left: '-1px',
+                              height: '1px',
+                              width: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                            }}
+                          />
+                        )}
+                        {/* 左の境界線（縦線） */}
+                        {selectionBorders.left && (
+                          <span
+                            className="pointer-events-none absolute z-20"
+                            style={{
+                              backgroundColor: theme.primaryColor,
+                              left: '-1px',
+                              top: '-1px',
+                              width: '1px',
+                              height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                            }}
+                          />
+                        )}
+                        {/* 右の境界線（縦線） */}
+                        {selectionBorders.right && (
+                          <span
+                            className="pointer-events-none absolute z-20"
+                            style={{
+                              backgroundColor: theme.primaryColor,
+                              right: '-1px',
+                              top: '-1px',
+                              width: '1px',
+                              height: 'calc(100% + 2px)', // セル間のボーダーを確実にカバー
+                            }}
+                          />
+                        )}
+                        <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                          {isFirstDataColumn && depth > 0 ? (
+                            <div
+                              style={{
+                                paddingLeft: `${depth * indentSize}px`,
+                              }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </div>
+                          ) : (
+                            flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )
+                          )}
+                        </div>
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+
+          {/* 集計行（フッター）または下部ボーダー専用行 */}
+          {showAggregation && aggregationRow ? (
+            <tfoot
+              className="relative z-20"
+              style={{
+                position: 'sticky',
+                bottom: 0,
+              }}
+            >
+              <tr>
+                {table.getAllLeafColumns().map((column, columnIndex) => {
+                  const colId = column.id
+                  const isSelectionColumn = colId === '__selection__'
+                  const isExpanderColumn = colId === '__expander__'
+                  const isFirstColumn = columnIndex === 0
+
+                  // 集計行の背景色（通常より少しだけ暗め、不透明）
+                  const aggregationBgColor = isDark
+                    ? '#1E1E1E' // ダークモード: 濃いグレー
+                    : '#F5F5F5' // ライトモード: 明るいグレー
+
+                  // 選択・展開カラムは空セル
+                  if (isSelectionColumn || isExpanderColumn) {
+                    return (
+                      <td
+                        key={colId}
+                        style={{
+                          width: column.getSize(),
+                          minWidth: column.getSize(),
+                          maxWidth: column.getSize(),
+                          backgroundColor: aggregationBgColor,
+                          borderTop: `2px solid ${
+                            isDark
+                              ? 'rgba(250, 250, 250, 0.2)'
+                              : 'rgba(0, 0, 0, 0.1)'
+                          }`,
+                          borderLeft: isFirstColumn
+                            ? 'none'
+                            : `1px solid ${borderColor}`,
+                          borderRight: 'none',
+                          borderBottom: 'none',
+                          padding: '8px 12px',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          color: textColor,
+                        }}
+                      />
+                    )
+                  }
+
+                  const value = aggregationRow[colId]
+                  const isBoolColumn = booleanColumns.has(colId)
+                  const isNumericColumn = numericColumns.has(colId)
+
+                  // 数値カラムの場合、3桁区切りでフォーマット
+                  const displayValue =
+                    typeof value === 'number' ? value.toLocaleString() : value
+
                   return (
                     <td
                       key={colId}
@@ -1510,71 +1618,43 @@ export function AdvancedDataFrame({
                         maxWidth: column.getSize(),
                         backgroundColor: aggregationBgColor,
                         borderTop: `2px solid ${
-                          isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
+                          isDark
+                            ? 'rgba(250, 250, 250, 0.2)'
+                            : 'rgba(0, 0, 0, 0.1)'
                         }`,
-                        borderLeft: isFirstColumn ? 'none' : `1px solid ${borderColor}`,
+                        borderLeft: isFirstColumn
+                          ? 'none'
+                          : `1px solid ${borderColor}`,
                         borderRight: 'none',
                         borderBottom: 'none',
                         padding: '8px 12px',
                         fontWeight: 600,
                         fontSize: '14px',
                         color: textColor,
+                        textAlign:
+                          isNumericColumn || isBoolColumn ? 'right' : 'left',
                       }}
-                    />
+                    >
+                      {displayValue}
+                    </td>
                   )
-                }
+                })}
+              </tr>
+            </tfoot>
+          ) : null}
+        </table>
 
-                const value = aggregationRow[colId]
-                const isBoolColumn = booleanColumns.has(colId)
-                const isNumericColumn = numericColumns.has(colId)
-
-                // 数値カラムの場合、3桁区切りでフォーマット
-                const displayValue =
-                  typeof value === 'number'
-                    ? value.toLocaleString()
-                    : value
-
-                return (
-                  <td
-                    key={colId}
-                    style={{
-                      width: column.getSize(),
-                      minWidth: column.getSize(),
-                      maxWidth: column.getSize(),
-                      backgroundColor: aggregationBgColor,
-                      borderTop: `2px solid ${
-                        isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'
-                      }`,
-                      borderLeft: isFirstColumn ? 'none' : `1px solid ${borderColor}`,
-                      borderRight: 'none',
-                      borderBottom: 'none',
-                      padding: '8px 12px',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      color: textColor,
-                      textAlign: isNumericColumn || isBoolColumn ? 'right' : 'left',
-                    }}
-                  >
-                    {displayValue}
-                  </td>
-                )
-              })}
-            </tr>
-          </tfoot>
+        {/* データが空の場合の表示 */}
+        {data.length === 0 && (
+          <div
+            className="p-6 text-center text-sm"
+            style={{
+              color: isDark ? '#888' : '#999',
+            }}
+          >
+            データがありません
+          </div>
         )}
-      </table>
-
-      {/* データが空の場合の表示 */}
-      {data.length === 0 && (
-        <div
-          className="p-6 text-center text-sm"
-          style={{
-            color: isDark ? '#888' : '#999',
-          }}
-        >
-          データがありません
-        </div>
-      )}
       </div>
 
       {/* フィルタレコード数表示 */}
