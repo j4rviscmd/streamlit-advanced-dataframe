@@ -117,6 +117,7 @@ def main():
     st.dataframe(df_10000, hide_index=True)
     advanced_dataframe(
         data=df_10000,
+        full_width=True,
         height=600,
         # enable_filters=[
         #     "カテゴリ",
@@ -754,7 +755,12 @@ def main():
     )
 
     st.write("各カラムをクリックしてソート順を確認してください（昇順↑/降順↓）")
-    advanced_dataframe(data=df_numbers, height=250, key="numbers_table")
+    advanced_dataframe(
+        data=df_numbers,
+        height=250,
+        key="numbers_table",
+        full_width=True,
+    )
 
     # 使い方説明
     st.header("使い方")
