@@ -1589,7 +1589,7 @@ export function AdvancedDataFrame({
                           minWidth: column.getSize(),
                           maxWidth: column.getSize(),
                           backgroundColor: aggregationBgColor,
-                          borderTop: `2px solid ${
+                          borderTop: `1px solid ${
                             isDark
                               ? 'rgba(250, 250, 250, 0.2)'
                               : 'rgba(0, 0, 0, 0.1)'
@@ -1624,7 +1624,7 @@ export function AdvancedDataFrame({
                         minWidth: column.getSize(),
                         maxWidth: column.getSize(),
                         backgroundColor: aggregationBgColor,
-                        borderTop: `2px solid ${
+                        borderTop: `1px solid ${
                           isDark
                             ? 'rgba(250, 250, 250, 0.2)'
                             : 'rgba(0, 0, 0, 0.1)'
