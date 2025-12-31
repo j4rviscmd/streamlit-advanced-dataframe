@@ -1212,6 +1212,55 @@ export function AdvancedDataFrame({
   const filteredRows = table.getRowModel().rows.length
   const isFiltered = columnFilters.length > 0
 
+  // カラムがない場合は空のヘッダ + empty行を表示
+  if (columns.length === 0) {
+    return (
+      <div
+        className={cn(
+          'relative max-w-full overflow-auto rounded-md',
+          fullWidth ? 'w-full' : 'w-fit',
+        )}
+        style={{
+          boxSizing: 'border-box',
+          border: `1px solid ${borderColor}`,
+          borderRadius: '0.375rem',
+          fontFamily: theme.font,
+          color: textColor,
+        }}
+      >
+        <table style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+          <thead>
+            <tr>
+              <th
+                className="px-3 text-sm font-light"
+                style={{
+                  height: `${ROW_HEIGHT}px`,
+                  backgroundColor: headerNormalBgColor,
+                  borderBottom: `1px solid ${borderColor}`,
+                  minWidth: '100px',
+                }}
+              />
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                className="px-3 text-sm"
+                style={{
+                  height: `${ROW_HEIGHT}px`,
+                  color: isDark ? '#6b7280' : '#9ca3af',
+                  fontStyle: 'italic',
+                }}
+              >
+                empty
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
   return (
     <>
       <div
@@ -1460,11 +1509,40 @@ export function AdvancedDataFrame({
           <tbody
             style={{
               display: 'grid',
-              height: `${totalSize}px`,
+              height: data.length === 0 ? `${ROW_HEIGHT}px` : `${totalSize}px`,
               position: 'relative',
               zIndex: 10,
             }}
           >
+            {/* 空データ時の「empty」行（セル結合で中央表示） */}
+            {data.length === 0 && (
+              <tr
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                  height: `${ROW_HEIGHT}px`,
+                }}
+              >
+                <td
+                  colSpan={table.getVisibleLeafColumns().length}
+                  className="px-3 text-sm"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: `${ROW_HEIGHT}px`,
+                    boxSizing: 'border-box',
+                    paddingTop: '0.4375rem',
+                    paddingBottom: '0.4375rem',
+                    color: isDark ? '#6b7280' : '#9ca3af',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  empty
+                </td>
+              </tr>
+            )}
             {virtualRows.map((virtualRow, virtualIndex) => {
               const row = table.getRowModel().rows[virtualRow.index]
               if (!row) return null
@@ -1809,18 +1887,6 @@ export function AdvancedDataFrame({
             </tfoot>
           ) : null}
         </table>
-
-        {/* データが空の場合の表示 */}
-        {data.length === 0 && (
-          <div
-            className="p-6 text-center text-sm"
-            style={{
-              color: isDark ? '#888' : '#999',
-            }}
-          >
-            データがありません
-          </div>
-        )}
       </div>
 
       {/* フィルタレコード数表示 */}

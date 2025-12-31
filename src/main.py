@@ -10,6 +10,11 @@ def main():
     TITLE = "Advanced DataFrame"
     st.set_page_config(page_title=TITLE, layout="wide")
     st.title(TITLE)
+
+    empty = pd.DataFrame(columns=["A", "B", "C"])
+    advanced_dataframe(empty, show_aggregation=False)
+    st.dataframe(empty)
+
     # サンプルデータ3: 数値データ
     st.header("13. 数値データのソート確認")
     df_numbers = pd.DataFrame(
@@ -320,6 +325,46 @@ def main():
             {"header": "評価", "columns": ["評価"]},
         ],
         key="groups_table",
+    )
+
+    # エラーケース検証: 数値と文字列が混在したカラム
+    st.header("14. 混在データテスト（数値 + 文字列）")
+    st.markdown(
+        """
+    **テスト項目:**
+    - 「価格」カラム: 数値と文字列（"未定"、"N/A"など）が混在
+    - 「在庫」カラム: 数値とNone/nullが混在
+    - 「評価」カラム: 数値と空文字が混在
+    """
+    )
+
+    df_mixed = pd.DataFrame(
+        {
+            "商品名": ["商品A", "商品B", "商品C", "商品D", "商品E", "商品F"],
+            "価格": [
+                1000,
+                "未定",
+                2500,
+                "N/A",
+                3000,
+                "要問合せ",
+            ],  # 数値+文字列
+            "在庫": [50, None, 30, 0, None, 100],  # 数値+None
+            "評価": [4.5, 4.2, "", 3.8, "★★★", 4.9],  # 数値+空文字+絵文字
+            "カテゴリ": ["食品", "家電", "衣類", "書籍", "雑貨", "食品"],
+        }
+    )
+
+    st.write("元データ:")
+    st.dataframe(df_mixed, hide_index=True)
+
+    st.write("advanced_dataframe で表示:")
+    advanced_dataframe(
+        data=df_mixed,
+        height=300,
+        enable_filters=["価格", "在庫", "評価", "カテゴリ"],
+        show_filter_records=True,
+        key="mixed_data_table",
     )
 
 

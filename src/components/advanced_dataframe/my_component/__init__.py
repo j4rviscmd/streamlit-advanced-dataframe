@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any, Hashable
 
@@ -186,7 +187,10 @@ def advanced_dataframe(
     ... )
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
-    data_json: list[dict[Hashable, Any]] = data.to_dict("records")
+    # to_json → json.loads でNaN/NaT を null に変換（JSONではNaNは無効な値のため）
+    data_json: list[dict[Hashable, Any]] = json.loads(
+        data.to_json(orient="records", default_handler=str)
+    )
 
     # 展開機能が有効な場合、最大深度をチェック
     if expandable:

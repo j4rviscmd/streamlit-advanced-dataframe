@@ -1,4 +1,5 @@
 import { AdvancedDataFrame } from '@/components/AdvancedDataFrame'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
 import { StreamlitProps } from '@/types/table'
 import { useEffect, useMemo } from 'react'
@@ -61,7 +62,11 @@ function MyComponent() {
     }
   }, [isDark])
 
-  return <AdvancedDataFrame {...props} />
+  return (
+    <ErrorBoundary>
+      <AdvancedDataFrame {...props} />
+    </ErrorBoundary>
+  )
 }
 
 export default MyComponent
