@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from components.advanced_dataframe import advanced_dataframe
+from streamlit_advanced_dataframe import advanced_dataframe
 
 
 def main():

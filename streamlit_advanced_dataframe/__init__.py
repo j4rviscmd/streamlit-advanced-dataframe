@@ -1,3 +1,16 @@
+"""
+Streamlit Advanced DataFrame
+
+Streamlitの標準st.dataframeを拡張した高機能カスタムコンポーネント。
+TanStack Tableを使用し、ソート、フィルタ、行選択などの機能を提供します。
+
+Usage:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    df = pd.DataFrame({"name": ["Alice", "Bob"], "age": [25, 30]})
+    advanced_dataframe(df, height=400)
+"""
+
 import json
 import os
 from typing import Any, Hashable
@@ -5,6 +18,8 @@ from typing import Any, Hashable
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+
+__all__ = ["advanced_dataframe"]
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
 # the component, and True when we're ready to package and distribute it.
@@ -154,7 +169,7 @@ def advanced_dataframe(
     --------
     >>> import streamlit as st
     >>> import pandas as pd
-    >>> from components.advanced_dataframe.my_component import advanced_dataframe
+    >>> from streamlit_advanced_dataframe import advanced_dataframe
     >>>
     >>> df = pd.DataFrame({
     ...     "name": ["Alice", "Bob", "Charlie"],
