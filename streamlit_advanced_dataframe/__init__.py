@@ -1,8 +1,25 @@
+"""
+Streamlit Advanced DataFrame
+
+Streamlitの標準st.dataframeを拡張した高機能カスタムコンポーネント。
+TanStack Tableを使用し、ソート、フィルタ、行選択などの機能を提供します。
+
+Usage:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    df = pd.DataFrame({"name": ["Alice", "Bob"], "age": [25, 30]})
+    advanced_dataframe(df, height=400)
+"""
+
+import json
 import os
 from typing import Any, Hashable
 
 import pandas as pd
+import streamlit as st
 import streamlit.components.v1 as components
+
+__all__ = ["advanced_dataframe"]
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
 # the component, and True when we're ready to package and distribute it.
@@ -22,6 +39,45 @@ else:
     )
 
 
+def _check_max_depth(
+    data: list[dict[Hashable, Any]],
+    sub_rows_key: str,
+    current_depth: int = 1,
+) -> int:
+    """
+    階層データの最大深度を再帰的にチェックする
+
+    Parameters
+    ----------
+    data : list[dict]
+        チェック対象のデータ（records形式）
+    sub_rows_key : str
+        サブ行データのキー名
+    current_depth : int, optional
+        現在の深度（内部使用）、デフォルトは1
+
+    Returns
+    -------
+    int
+        最大深度
+    """
+    max_depth = current_depth
+
+    for row in data:
+        if sub_rows_key in row and isinstance(row[sub_rows_key], list):
+            sub_rows = row[sub_rows_key]
+            if sub_rows:
+                # サブ行の深度を再帰的にチェック
+                sub_depth = _check_max_depth(
+                    sub_rows,
+                    sub_rows_key,
+                    current_depth + 1,
+                )
+                max_depth = max(max_depth, sub_depth)
+
+    return max_depth
+
+
 def advanced_dataframe(
     data: pd.DataFrame,
     height: int = 600,
@@ -31,6 +87,9 @@ def advanced_dataframe(
     show_filter_records: bool = False,
     visible_columns: list[str] | None = None,
     column_groups: list[dict[str, Any]] | None = None,
+    expandable: bool = False,
+    sub_rows_key: str = "subRows",
+    show_aggregation: bool = True,
     key: str | None = None,
 ) -> Any:
     """
@@ -80,6 +139,18 @@ def advanced_dataframe(
         各要素は {'header': 'グループ名', 'columns': ['カラム1', 'カラム2']} の形式
         'id'キーは省略可能（省略時は'header'を使用）
         グループに属さないカラムは通常のヘッダとして表示されます
+    expandable : bool, optional
+        行展開機能を有効化するか、デフォルトはFalse
+        Trueの場合、階層データを展開・折りたたみ表示できます
+        データには`sub_rows_key`で指定したキーにサブ行のリストを含める必要があります
+    sub_rows_key : str, optional
+        サブ行データのキー名、デフォルトは"subRows"
+        各行のこのキーにサブ行のリスト（dict）を含めることで階層表示されます
+    show_aggregation : bool, optional
+        集計行の表示を有効化するか、デフォルトはTrue
+        Trueの場合、テーブル下部に固定された集計行が表示されます
+        数値カラムは合計、Boolean型カラムはTrue率（%）を表示します
+        階層データの場合は親行のみを集計対象とします
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -98,7 +169,7 @@ def advanced_dataframe(
     --------
     >>> import streamlit as st
     >>> import pandas as pd
-    >>> from components.advanced_dataframe.my_component import advanced_dataframe
+    >>> from streamlit_advanced_dataframe import advanced_dataframe
     >>>
     >>> df = pd.DataFrame({
     ...     "name": ["Alice", "Bob", "Charlie"],
@@ -139,11 +210,29 @@ def advanced_dataframe(
     ... )
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
-    data_json: list[dict[Hashable, Any]] = data.to_dict("records")
+    # to_json → json.loads でNaN/NaT を null に変換（JSONではNaNは無効な値のため）
+    data_json: list[dict[Hashable, Any]] = json.loads(
+        data.to_json(orient="records", default_handler=str)
+    )
+
+    # 展開機能が有効な場合、最大深度をチェック
+    if expandable:
+        max_depth = _check_max_depth(data_json, sub_rows_key)
+        if max_depth > 5:
+            st.warning(
+                f"⚠️ **階層の深さが{max_depth}階層あります。**  \n"
+                f"パフォーマンスとユーザビリティのため、**5階層以下を推奨**します。  \n"
+                f"深い階層はユーザーが構造を理解しづらくなる可能性があります。",
+                icon="⚠️",
+            )
 
     # カラム設定を生成
     columns_json: list[dict[str, Any]] = []
     for col in data.columns:
+        # sub_rows_keyで指定されたカラムは表示カラムから除外
+        if expandable and col == sub_rows_key:
+            continue
+
         col_config: dict[str, Any] = {
             "id": col,
             "header": col,
@@ -170,12 +259,11 @@ def advanced_dataframe(
         show_filter_records=show_filter_records,
         visible_columns=visible_columns,
         column_groups=column_groups,
+        expandable=expandable,
+        sub_rows_key=sub_rows_key,
+        show_aggregation=show_aggregation,
         key=key,
         default=None,
     )
 
     return component_value
-
-
-# 後方互換性のため、旧名称も維持
-my_component = advanced_dataframe

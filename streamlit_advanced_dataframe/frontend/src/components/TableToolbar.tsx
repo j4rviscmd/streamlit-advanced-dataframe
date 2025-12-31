@@ -36,8 +36,7 @@ export function TableToolbar({
   onPrevMatch,
   isVisible,
 }: TableToolbarProps) {
-  const { theme, isDark, secondaryBackgroundColor, textColor } =
-    useStreamlitTheme()
+  const { theme, isDark, textColor } = useStreamlitTheme()
 
   // 検索窓の表示状態
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -73,10 +72,20 @@ export function TableToolbar({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isSearchOpen, handleSearchClose])
 
+  // 検索入力欄でのEnterキー押下時に次の一致箇所へジャンプ
+  const handleSearchInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && totalMatches > 0) {
+        onNextMatch()
+      }
+    },
+    [totalMatches, onNextMatch],
+  )
+
   return (
     <div
       className={cn(
-        'absolute top-2 left-2 z-30 flex items-center gap-1 transition-opacity duration-200',
+        'fixed top-2 left-2 z-30 flex items-center gap-1 transition-opacity duration-200',
         isVisible || isSearchOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
       )}
     >
@@ -95,6 +104,7 @@ export function TableToolbar({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
+            onKeyDown={handleSearchInputKeyDown}
             placeholder="Type to search"
             className="w-48 bg-transparent text-sm outline-none"
             style={{
@@ -181,10 +191,10 @@ export function TableToolbar({
           </button>
         </div>
       ) : (
-        // 検索アイコンボタン
+        // 検索アイコンボタン（コンパクトサイズ: ソートアイコンと重ならないように）
         <button
           onClick={handleSearchIconClick}
-          className="p-2 rounded-md transition-colors"
+          className="p-1 rounded-md transition-colors"
           title="Search"
           style={{
             backgroundColor: isDark ? '#262730' : '#FFFFFF',
@@ -192,7 +202,7 @@ export function TableToolbar({
             border: `1px solid ${isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
           }}
         >
-          <Search size={18} />
+          <Search size={14} />
         </button>
       )}
     </div>
