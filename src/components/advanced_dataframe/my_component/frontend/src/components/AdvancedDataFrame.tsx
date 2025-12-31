@@ -765,12 +765,15 @@ export function AdvancedDataFrame({
 
   // コンテンツ合計幅の計算
   const totalContentWidth = useMemo(() => {
-    return table.getAllLeafColumns().reduce((sum, col) => sum + col.getSize(), 0)
+    return table
+      .getAllLeafColumns()
+      .reduce((sum, col) => sum + col.getSize(), 0)
   }, [table])
 
   // fullWidth時にカラムを伸縮すべきかどうかの判定
   // コンテンツ合計幅 < コンテナ幅 の場合のみ伸縮
-  const shouldStretch = fullWidth && containerWidth > 0 && totalContentWidth < containerWidth
+  const shouldStretch =
+    fullWidth && containerWidth > 0 && totalContentWidth < containerWidth
 
   // カラム幅を計算する関数
   const getColumnWidth = useCallback(
@@ -1356,7 +1359,7 @@ export function AdvancedDataFrame({
                           {!isGroupHeader &&
                             header.column.getCanSort() &&
                             header.column.getIsSorted() && (
-                              <span className="text-xs opacity-60 flex-shrink-0">
+                              <span className="flex-shrink-0 text-xs opacity-60">
                                 {header.column.getIsSorted() === 'asc'
                                   ? '↑'
                                   : '↓'}
@@ -1753,12 +1756,16 @@ export function AdvancedDataFrame({
 
                   return (
                     <td
+                      title={displayValue}
+                      className="cursor-default bg-blue-50"
                       key={colId}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent:
-                          isNumericColumn || isBoolColumn ? 'flex-end' : 'flex-start',
+                          isNumericColumn || isBoolColumn
+                            ? 'flex-end'
+                            : 'flex-start',
                         width: getColumnWidth(column.getSize()),
                         minWidth: column.columnDef.minSize ?? 50,
                         flexGrow: shouldStretch ? 1 : 0,
