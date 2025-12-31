@@ -714,7 +714,7 @@ wheels = [
 [[package]]
 name = "streamlit-advanced-dataframe"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "pandas" },
     { name = "streamlit" },
@@ -722,8 +722,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pandas", specifier = ">=2.3.3" },
-    { name = "streamlit", specifier = ">=1.52.2" },
+    { name = "pandas", specifier = ">=2.0.0" },
+    { name = "streamlit", specifier = ">=1.52.0" },
 ]
 
 [[package]]
