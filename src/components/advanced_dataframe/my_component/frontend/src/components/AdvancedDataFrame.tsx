@@ -26,6 +26,7 @@ import {
   CellSelection,
   RowData,
   StreamlitProps,
+  type ColumnConfig,
 } from '@/types/table'
 import {
   ColumnDef,
@@ -44,6 +45,26 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Streamlit } from 'streamlit-component-lib'
+
+/**
+ * 複数選択フィルタの値の型
+ */
+interface MultiSelectFilterValue {
+  type: 'multiselect'
+  values: string[]
+}
+
+/**
+ * フィルタ値がMultiSelectFilterValueかどうかを判定する型ガード
+ */
+function isMultiSelectFilter(value: unknown): value is MultiSelectFilterValue {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    (value as MultiSelectFilterValue).type === 'multiselect'
+  )
+}
 
 /**
  * テーブル行の固定高さ（px）
@@ -412,11 +433,8 @@ export function AdvancedDataFrame({
               if (!filterValue || filterValue === '') return true
 
               // 複数選択フィルタの場合
-              if (
-                typeof filterValue === 'object' &&
-                (filterValue as any).type === 'multiselect'
-              ) {
-                const selectedValues = (filterValue as any).values as string[]
+              if (isMultiSelectFilter(filterValue)) {
+                const selectedValues = filterValue.values
                 if (selectedValues.length === 0) return true
                 const cellText = String(cellValue ?? '')
                 return selectedValues.includes(cellText)
@@ -483,11 +501,8 @@ export function AdvancedDataFrame({
               if (!filterValue || filterValue === '') return true
 
               // 複数選択フィルタの場合
-              if (
-                typeof filterValue === 'object' &&
-                (filterValue as any).type === 'multiselect'
-              ) {
-                const selectedValues = (filterValue as any).values as string[]
+              if (isMultiSelectFilter(filterValue)) {
+                const selectedValues = filterValue.values
                 if (selectedValues.length === 0) return true
                 const cellText = String(cellValue ?? '')
                 return selectedValues.includes(cellText)
@@ -665,6 +680,9 @@ export function AdvancedDataFrame({
     },
   })
 
+  // フィルタ・ソート後の行データを取得（依存配列用に変数として抽出）
+  const tableRows = table.getRowModel().rows
+
   /**
    * 集計行の値を計算（フィルタ・ソート後のデータを使用、親行のみを対象）
    * - 数値カラム: 合計
@@ -674,15 +692,12 @@ export function AdvancedDataFrame({
   const aggregationRow = useMemo(() => {
     if (!showAggregation) return null
 
-    // フィルタ・ソート後の行データを取得
-    const rows = table.getRowModel().rows
-
     // 親行のみを抽出（階層データの場合）
     const parentRows = expandable
-      ? rows
+      ? tableRows
           .filter((row) => row.depth === 0) // 深度0が親行
           .map((row) => row.original)
-      : rows.map((row) => row.original)
+      : tableRows.map((row) => row.original)
 
     const aggregation: Record<string, string | number> = {}
 
@@ -719,17 +734,11 @@ export function AdvancedDataFrame({
     })
 
     return aggregation
-  }, [
-    showAggregation,
-    table.getRowModel().rows,
-    columns,
-    booleanColumns,
-    expandable,
-  ])
+  }, [showAggregation, tableRows, columns, booleanColumns, expandable])
 
   // 行の仮想化設定
   const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length,
+    count: tableRows.length,
     getScrollElement: () => tableRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 5, // スクロール方向に5行余分にレンダリング
@@ -1403,7 +1412,9 @@ export function AdvancedDataFrame({
                           onTouchStart={(e) => {
                             e.preventDefault() // 親要素のdraggableイベントを抑制
                             e.stopPropagation() // カラム並び替えのドラッグと競合しないようにする
-                            header.getResizeHandler()(e as any)
+                            header.getResizeHandler()(
+                              e as unknown as React.MouseEvent,
+                            )
                           }}
                           className="resize-handle absolute top-0 h-full w-2.5 cursor-col-resize touch-none select-none"
                           style={{

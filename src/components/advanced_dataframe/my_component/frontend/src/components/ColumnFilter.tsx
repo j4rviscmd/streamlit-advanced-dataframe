@@ -16,6 +16,26 @@ import { NumberRangeFilter } from './filters/NumberRangeFilter'
 import { TextFilter } from './filters/TextFilter'
 
 /**
+ * 複数選択フィルタの値の型
+ */
+interface MultiSelectFilterValue {
+  type: 'multiselect'
+  values: string[]
+}
+
+/**
+ * フィルタ値がMultiSelectFilterValueかどうかを判定する型ガード
+ */
+function isMultiSelectFilter(value: unknown): value is MultiSelectFilterValue {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    (value as MultiSelectFilterValue).type === 'multiselect'
+  )
+}
+
+/**
  * カラムフィルタコンポーネント
  *
  * ヘッダ内に配置されるフィルタアイコンとポップオーバーを提供します。
@@ -113,17 +133,15 @@ export function ColumnFilter({
   const isFiltered = !!column.getFilterValue()
 
   // filterValueがオブジェクト（multiselect）かstring（テキスト検索）かを判定
-  const isMultiselectFilter =
-    typeof filterValue === 'object' &&
-    (filterValue as any)?.type === 'multiselect'
-  const textSearchValue = isMultiselectFilter
+  const isMultiselectFilterValue = isMultiSelectFilter(filterValue)
+  const textSearchValue = isMultiselectFilterValue
     ? ''
     : ((filterValue as string) ?? '')
 
   // テキストフィルタの複数選択状態（ユニーク値選択用）
   // filterValueから初期値を取得
-  const initialSelectedValues = isMultiselectFilter
-    ? ((filterValue as any).values as string[])
+  const initialSelectedValues = isMultiselectFilterValue
+    ? filterValue.values
     : []
   const [selectedUniqueValues, setSelectedUniqueValues] = useState<string[]>(
     initialSelectedValues,
@@ -131,12 +149,12 @@ export function ColumnFilter({
 
   // filterValueが変更されたら、selectedUniqueValuesも更新
   useEffect(() => {
-    if (isMultiselectFilter) {
-      setSelectedUniqueValues((filterValue as any).values as string[])
+    if (isMultiSelectFilter(filterValue)) {
+      setSelectedUniqueValues(filterValue.values)
     } else {
       setSelectedUniqueValues([])
     }
-  }, [filterValue, isMultiselectFilter])
+  }, [filterValue])
 
   const setTextFilterValue = (value: string) => {
     // テキスト検索を入力したら複数選択をクリア

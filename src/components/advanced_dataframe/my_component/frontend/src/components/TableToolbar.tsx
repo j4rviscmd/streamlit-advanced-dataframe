@@ -36,8 +36,7 @@ export function TableToolbar({
   onPrevMatch,
   isVisible,
 }: TableToolbarProps) {
-  const { theme, isDark, secondaryBackgroundColor, textColor } =
-    useStreamlitTheme()
+  const { theme, isDark, textColor } = useStreamlitTheme()
 
   // 検索窓の表示状態
   const [isSearchOpen, setIsSearchOpen] = useState(false)

@@ -19,4 +19,11 @@ export default defineConfig([
   reactHooks.configs["recommended-latest"],
   reactRefresh.configs.recommended,
   pluginReactJSXRuntime,
+  // shadcn/uiコンポーネントはvariantsをエクスポートする標準パターンのため除外
+  {
+    files: ["**/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 ]);
