@@ -126,6 +126,9 @@ export function AdvancedDataFrame({
   // テーブル全体のhover状態管理（ツールバー表示用）
   const [isTableHovered, setIsTableHovered] = useState(false)
 
+  // コンテナ幅の監視（fullWidth時の伸縮判定用）
+  const [containerWidth, setContainerWidth] = useState(0)
+
   // グローバル検索クエリ
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -745,6 +748,40 @@ export function AdvancedDataFrame({
     [table],
   )
 
+  // コンテナ幅の監視（ResizeObserver）
+  useEffect(() => {
+    if (!tableRef.current) return
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) {
+        setContainerWidth(entry.contentRect.width)
+      }
+    })
+
+    observer.observe(tableRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  // コンテンツ合計幅の計算
+  const totalContentWidth = useMemo(() => {
+    return table.getAllLeafColumns().reduce((sum, col) => sum + col.getSize(), 0)
+  }, [table])
+
+  // fullWidth時にカラムを伸縮すべきかどうかの判定
+  // コンテンツ合計幅 < コンテナ幅 の場合のみ伸縮
+  const shouldStretch = fullWidth && containerWidth > 0 && totalContentWidth < containerWidth
+
+  // カラム幅を計算する関数
+  const getColumnWidth = useCallback(
+    (columnSize: number): number | string => {
+      if (!shouldStretch) return columnSize
+      // 割合で計算（%）
+      return `${(columnSize / totalContentWidth) * 100}%`
+    },
+    [shouldStretch, totalContentWidth],
+  )
+
   // カラム順序の初期化（tableColumnsが変更されたとき）
   useEffect(() => {
     if (columnOrder.length === 0) {
@@ -1195,44 +1232,35 @@ export function AdvancedDataFrame({
           isVisible={isTableHovered}
         />
         <table
-          className={cn(fullWidth ? 'w-full' : 'min-w-max')}
+          className={cn(fullWidth ? 'w-full' : 'w-fit')}
           style={{
+            display: 'grid',
             borderCollapse: 'separate',
             borderSpacing: 0,
-            tableLayout: 'fixed',
           }}
         >
           <thead
-            className="sticky z-20"
             style={{
-              top: '0px',
+              display: 'grid',
+              position: 'sticky',
+              top: 0,
+              zIndex: 20,
+              borderTop: `1px solid ${borderColor}`,
+              borderTopLeftRadius: '0.375rem',
+              borderTopRightRadius: '0.375rem',
             }}
           >
-            {/* 上辺ボーダー専用行 */}
-            <tr style={{ height: 0 }}>
-              <th
-                colSpan={table.getAllLeafColumns().length}
-                style={{
-                  width: '100%',
-                  height: 0,
-                  padding: 0,
-                  borderTop: `1px solid ${borderColor}`,
-                  borderTopLeftRadius: '0.475rem',
-                  borderTopRightRadius: '0.475rem',
-                  borderBottom: 'none',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  backgroundColor: headerNormalBgColor,
-                }}
-              />
-            </tr>
-            {/* 本来のヘッダ行 */}
+            {/* ヘッダ行 */}
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr className="w-full" key={headerGroup.id}>
+              <tr
+                key={headerGroup.id}
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                }}
+              >
                 {headerGroup.headers.map((header, headerIndex) => {
                   const isFirstColumn = headerIndex === 0
-                  const isLastColumn =
-                    headerIndex === headerGroup.headers.length - 1
 
                   // グループヘッダかどうか（子カラムを持つ場合）
                   const isGroupHeader =
@@ -1246,8 +1274,6 @@ export function AdvancedDataFrame({
                   // グループヘッダ、選択カラム、展開カラムはドラッグ不可
                   const isDraggable =
                     !isSelectionColumn && !isExpanderColumn && !isGroupHeader
-                  // 数値カラムまたはboolean型カラムは中央揃え
-                  const isCentered = isNumeric || isBoolean
 
                   return (
                     <th
@@ -1284,12 +1310,13 @@ export function AdvancedDataFrame({
                           : 'cursor-default',
                       )}
                       style={{
-                        width: header.getSize(),
-                        minWidth: header.getSize(),
-                        maxWidth: header.getSize(),
+                        display: 'flex',
+                        alignItems: 'center',
+                        width: getColumnWidth(header.getSize()),
+                        minWidth: header.column.columnDef.minSize ?? 50,
+                        flexGrow: shouldStretch ? 1 : 0,
+                        flexShrink: 0,
                         height: `${ROW_HEIGHT}px`,
-                        minHeight: `${ROW_HEIGHT}px`,
-                        maxHeight: `${ROW_HEIGHT}px`,
                         boxSizing: 'border-box',
                         paddingTop: '0.4375rem',
                         paddingBottom: '0.4375rem',
@@ -1305,7 +1332,7 @@ export function AdvancedDataFrame({
                         opacity: isDragging ? 0.5 : 1,
                         position: 'relative',
                         overflow: 'hidden',
-                        zIndex: 100 - headerIndex, // 左側のカラムほど高いz-index付与して重なり順を制御(=カラム幅調整つまみエリアを確保)
+                        zIndex: 100 - headerIndex,
                       }}
                       onClick={
                         !isGroupHeader &&
@@ -1417,17 +1444,17 @@ export function AdvancedDataFrame({
             ))}
           </thead>
           <tbody
-            className="relative z-10"
             style={{
+              display: 'grid',
               height: `${totalSize}px`,
               position: 'relative',
+              zIndex: 10,
             }}
           >
             {virtualRows.map((virtualRow, virtualIndex) => {
               const row = table.getRowModel().rows[virtualRow.index]
               if (!row) return null
               const rowIndex = virtualRow.index
-              const isFirstRow = rowIndex === 0
               const isLastRow = rowIndex === table.getRowModel().rows.length - 1
               // 仮想スクロールで表示されている最後の行（集計行がない場合のボーダー制御）
               const isLastVirtualRow = virtualIndex === virtualRows.length - 1
@@ -1446,9 +1473,8 @@ export function AdvancedDataFrame({
                 <tr
                   key={row.id}
                   style={{
+                    display: 'flex',
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
                     width: '100%',
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
@@ -1458,8 +1484,6 @@ export function AdvancedDataFrame({
                 >
                   {row.getVisibleCells().map((cell, cellIndex) => {
                     const isFirstColumn = cellIndex === 0
-                    const isLastColumn =
-                      cellIndex === row.getVisibleCells().length - 1
 
                     // 選択範囲がないときは選択判定をスキップ（パフォーマンス最適化）
                     const isSelected =
@@ -1511,9 +1535,17 @@ export function AdvancedDataFrame({
                               : 'text-left',
                         )}
                         style={{
-                          width: cell.column.getSize(),
-                          minWidth: cell.column.getSize(),
-                          maxWidth: cell.column.getSize(),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: isBoolean
+                            ? 'center'
+                            : isNumeric
+                              ? 'flex-end'
+                              : 'flex-start',
+                          width: getColumnWidth(cell.column.getSize()),
+                          minWidth: cell.column.columnDef.minSize ?? 50,
+                          flexGrow: shouldStretch ? 1 : 0,
+                          flexShrink: 0,
                           height: `${ROW_HEIGHT}px`,
                           boxSizing: 'border-box',
                           paddingTop: '0.4375rem',
@@ -1654,13 +1686,19 @@ export function AdvancedDataFrame({
           {/* 集計行（フッター）または下部ボーダー専用行 */}
           {showAggregation && aggregationRow ? (
             <tfoot
-              className="relative z-20"
               style={{
+                display: 'grid',
                 position: 'sticky',
                 bottom: 0,
+                zIndex: 20,
               }}
             >
-              <tr>
+              <tr
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                }}
+              >
                 {table.getVisibleLeafColumns().map((column, columnIndex) => {
                   const colId = column.id
                   const isSelectionColumn = colId === '__selection__'
@@ -1678,9 +1716,12 @@ export function AdvancedDataFrame({
                       <td
                         key={colId}
                         style={{
-                          width: column.getSize(),
-                          minWidth: column.getSize(),
-                          maxWidth: column.getSize(),
+                          display: 'flex',
+                          alignItems: 'center',
+                          width: getColumnWidth(column.getSize()),
+                          minWidth: column.columnDef.minSize ?? 50,
+                          flexGrow: shouldStretch ? 1 : 0,
+                          flexShrink: 0,
                           backgroundColor: aggregationBgColor,
                           borderTop: `1px solid ${
                             isDark
@@ -1714,9 +1755,14 @@ export function AdvancedDataFrame({
                     <td
                       key={colId}
                       style={{
-                        width: column.getSize(),
-                        minWidth: column.getSize(),
-                        maxWidth: column.getSize(),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent:
+                          isNumericColumn || isBoolColumn ? 'flex-end' : 'flex-start',
+                        width: getColumnWidth(column.getSize()),
+                        minWidth: column.columnDef.minSize ?? 50,
+                        flexGrow: shouldStretch ? 1 : 0,
+                        flexShrink: 0,
                         backgroundColor: aggregationBgColor,
                         borderTop: `1px solid ${
                           isDark
@@ -1732,8 +1778,6 @@ export function AdvancedDataFrame({
                         fontWeight: 600,
                         fontSize: '14px',
                         color: textColor,
-                        textAlign:
-                          isNumericColumn || isBoolColumn ? 'right' : 'left',
                         overflow: 'hidden',
                       }}
                     >
