@@ -1843,18 +1843,18 @@ export function AdvancedDataFrame({
                   const displayValue =
                     typeof value === 'number' ? value.toLocaleString() : value
 
+                  // 値があるかどうか（Σアイコン表示判定用）
+                  const hasValue = value !== '' && value != null
+
                   return (
                     <td
                       title={displayValue}
-                      className="cursor-default bg-blue-50"
+                      className="cursor-default"
                       key={colId}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent:
-                          isNumericColumn || isBoolColumn
-                            ? 'flex-end'
-                            : 'flex-start',
+                        justifyContent: 'space-between',
                         width: getColumnWidth(column.getSize()),
                         minWidth: column.columnDef.minSize ?? 50,
                         flexGrow: shouldStretch ? 1 : 0,
@@ -1877,7 +1877,26 @@ export function AdvancedDataFrame({
                         overflow: 'hidden',
                       }}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                      {/* Σアイコン（値がある場合のみ左寄せで表示） */}
+                      {hasValue && (
+                        <span
+                          style={{
+                            opacity: 0.5,
+                            marginRight: '6px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          Σ
+                        </span>
+                      )}
+                      <div
+                        className="overflow-hidden text-ellipsis whitespace-nowrap"
+                        style={{
+                          flex: 1,
+                          textAlign:
+                            isNumericColumn || isBoolColumn ? 'right' : 'left',
+                        }}
+                      >
                         {displayValue}
                       </div>
                     </td>
