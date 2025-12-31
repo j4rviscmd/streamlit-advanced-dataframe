@@ -1309,6 +1309,7 @@ export function AdvancedDataFrame({
               borderTop: `1px solid ${borderColor}`,
               borderTopLeftRadius: '0.375rem',
               borderTopRightRadius: '0.375rem',
+              backgroundColor: headerNormalBgColor,
             }}
           >
             {/* ヘッダ行 */}
