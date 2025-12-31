@@ -1368,7 +1368,7 @@ export function AdvancedDataFrame({
                           {!isGroupHeader &&
                             header.column.getCanSort() &&
                             header.column.getIsSorted() && (
-                              <span className="flex-shrink-0 text-xs opacity-60">
+                              <span className="shrink-0 text-xs opacity-60">
                                 {header.column.getIsSorted() === 'asc'
                                   ? '↑'
                                   : '↓'}
