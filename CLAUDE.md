@@ -138,6 +138,7 @@ frontend/src/
 │   ├── AdvancedDataFrame.tsx    # メインテーブルコンポーネント
 │   ├── ColumnFilter.tsx         # フィルタUI
 │   ├── ColumnHeader.tsx         # カスタムヘッダ
+│   ├── ErrorBoundary.tsx        # エラーハンドリング・フォールバックUI
 │   ├── ExpandableRow.tsx        # 展開可能行
 │   └── TableToolbar.tsx         # ツールバー（検索、エクスポートなど）
 ├── hooks/
@@ -300,6 +301,54 @@ function AdvancedDataFrame({ data, columns }: Props) {
 
 ---
 
+## エラーハンドリング方針
+
+### 基本原則
+
+- **フォールバック表示**: エラー発生時もUIを崩さず、ユーザーに適切なフィードバックを提供
+- **エラーの集約**: `ErrorBoundary`コンポーネントでReactエラーを一元管理
+- **デバッグ支援**: エラー詳細はコンソールに出力し、開発者が原因を特定しやすくする
+
+### 対応済みエラーケース
+
+| カテゴリ | ケース | 対応方法 | 対応ファイル |
+|---------|--------|---------|-------------|
+| **データ変換** | NaN/None混在 | `to_json`でnullに変換 | `__init__.py` |
+| **React描画** | コンポーネントクラッシュ | ErrorBoundaryでキャッチ | `ErrorBoundary.tsx` |
+| **空データ** | カラムあり・データなし | ヘッダ + empty行（セル結合） | `AdvancedDataFrame.tsx` |
+| **空データ** | カラムなし | 空ヘッダ + empty行 | `AdvancedDataFrame.tsx` |
+
+### Python側（`__init__.py`）
+
+```python
+# NaN/NaT を null に変換してからJSONに変換（JSONではNaNは無効な値）
+data_json = json.loads(data.to_json(orient="records", default_handler=str))
+```
+
+### React側（`ErrorBoundary.tsx`）
+
+```typescript
+// MyComponent.tsx でラップ
+<ErrorBoundary>
+  <AdvancedDataFrame {...props} />
+</ErrorBoundary>
+```
+
+### 空データ表示（`AdvancedDataFrame.tsx`）
+
+- **カラムあり**: ヘッダ行 + `colspan`でセル結合した「empty」行（中央表示）
+- **カラムなし**: 空ヘッダ行 + 「empty」行
+
+```
+┌─────┬─────┬─────┐
+│  A  │  B  │  C  │  ← ヘッダ行
+├─────┴─────┴─────┤
+│      empty      │  ← セル結合で中央表示
+└─────────────────┘
+```
+
+---
+
 ## ブランチ戦略
 
 ### mainブランチ保護
@@ -371,5 +420,5 @@ git checkout -b feature/phase2-filtering
 
 ---
 
-**最終更新**: 2025-12-28
-**プロジェクトステータス**: Phase 1準備中
+**最終更新**: 2025-12-31
+**プロジェクトステータス**: Phase 4実装中
