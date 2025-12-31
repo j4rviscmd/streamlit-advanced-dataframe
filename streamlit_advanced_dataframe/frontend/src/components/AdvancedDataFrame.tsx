@@ -741,7 +741,7 @@ export function AdvancedDataFrame({
     count: tableRows.length,
     getScrollElement: () => tableRef.current,
     estimateSize: () => ROW_HEIGHT,
-    overscan: 5, // スクロール方向に5行余分にレンダリング
+    overscan: 10, // スクロール方向に10行余分にレンダリング
   })
 
   const virtualRows = rowVirtualizer.getVirtualItems()
