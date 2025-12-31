@@ -24,7 +24,11 @@ else:
     )
 
 
-def _check_max_depth(data: list[dict[Hashable, Any]], sub_rows_key: str, current_depth: int = 1) -> int:
+def _check_max_depth(
+    data: list[dict[Hashable, Any]],
+    sub_rows_key: str,
+    current_depth: int = 1,
+) -> int:
     """
     階層データの最大深度を再帰的にチェックする
 
@@ -49,7 +53,11 @@ def _check_max_depth(data: list[dict[Hashable, Any]], sub_rows_key: str, current
             sub_rows = row[sub_rows_key]
             if sub_rows:
                 # サブ行の深度を再帰的にチェック
-                sub_depth = _check_max_depth(sub_rows, sub_rows_key, current_depth + 1)
+                sub_depth = _check_max_depth(
+                    sub_rows,
+                    sub_rows_key,
+                    current_depth + 1,
+                )
                 max_depth = max(max_depth, sub_depth)
 
     return max_depth
@@ -200,7 +208,7 @@ def advanced_dataframe(
                 f"⚠️ **階層の深さが{max_depth}階層あります。**  \n"
                 f"パフォーマンスとユーザビリティのため、**5階層以下を推奨**します。  \n"
                 f"深い階層はユーザーが構造を理解しづらくなる可能性があります。",
-                icon="⚠️"
+                icon="⚠️",
             )
 
     # カラム設定を生成
@@ -244,7 +252,3 @@ def advanced_dataframe(
     )
 
     return component_value
-
-
-# 後方互換性のため、旧名称も維持
-my_component = advanced_dataframe
