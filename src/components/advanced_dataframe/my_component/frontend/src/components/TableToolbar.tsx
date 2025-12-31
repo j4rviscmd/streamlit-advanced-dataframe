@@ -191,10 +191,10 @@ export function TableToolbar({
           </button>
         </div>
       ) : (
-        // 検索アイコンボタン
+        // 検索アイコンボタン（コンパクトサイズ: ソートアイコンと重ならないように）
         <button
           onClick={handleSearchIconClick}
-          className="p-2 rounded-md transition-colors"
+          className="p-1 rounded-md transition-colors"
           title="Search"
           style={{
             backgroundColor: isDark ? '#262730' : '#FFFFFF',
@@ -202,7 +202,7 @@ export function TableToolbar({
             border: `1px solid ${isDark ? 'rgba(250, 250, 250, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
           }}
         >
-          <Search size={18} />
+          <Search size={14} />
         </button>
       )}
     </div>
