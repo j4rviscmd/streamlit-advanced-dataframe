@@ -1,3 +1,2 @@
 streamlit>=1.52.0
-streamlit-advanced-dataframe
 pandas>=2.0.0
