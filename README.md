@@ -7,9 +7,10 @@
 
 Streamlit's `st.dataframe` with advanced features using TanStack Table.
 
-## Documentation
+## Demo & Docs
 
-For full documentation, features, and API reference, see the [Documentation](https://j4rviscmd.github.io/streamlit-advanced-dataframe/).
+- [Live Demo](https://app-advanced-dataframe-ezjlvffyxpev3iima6ttwr.streamlit.app/)
+- [Documentation](https://j4rviscmd.github.io/streamlit-advanced-dataframe/)
 
 ## Quick Start
 
