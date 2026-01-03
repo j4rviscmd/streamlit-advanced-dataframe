@@ -315,8 +315,41 @@ def main():
     else:
         st.info("行が選択されていません（複数選択可能）")
 
+    # prefix/suffix機能のデモ
+    st.header("4. prefix/suffix機能")
+    st.markdown(
+        """
+    **column_config**でカラムごとにprefix/suffixを設定できます。
+    - 価格: ¥ prefix
+    - 割引率: % suffix
+    - 利益率: 両方（prefix + suffix）
+    """
+    )
+
+    df_prefix_suffix = pd.DataFrame(
+        {
+            "商品名": ["商品A", "商品B", "商品C", "商品D", "商品E"],
+            "価格": [1000, 2500, 1800, 3200, 4500],
+            "割引率": [10, 15, 5, 20, 12],
+            "利益率": [25.5, 30.2, 18.8, 35.0, 28.5],
+            "在庫あり": [True, False, True, True, False],
+        }
+    )
+
+    advanced_dataframe(
+        data=df_prefix_suffix,
+        height=250,
+        column_config={
+            "価格": {"prefix": "¥"},
+            "割引率": {"suffix": "%"},
+            "利益率": {"prefix": "+", "suffix": "%"},
+        },
+        show_summary=True,
+        key="prefix_suffix_table",
+    )
+
     # Phase 3: ヘッダ結合（カラムグループ）機能のデモ
-    st.header("4. ヘッダ結合（カラムグループ）機能（Phase 3）")
+    st.header("5. ヘッダ結合（カラムグループ）機能（Phase 3）")
 
     df_groups = pd.DataFrame(
         {
@@ -348,7 +381,7 @@ def main():
     )
 
     # エラーケース検証: 数値と文字列が混在したカラム
-    st.header("14. 混在データテスト（数値 + 文字列）")
+    st.header("6. 混在データテスト（数値 + 文字列）")
     st.markdown(
         """
     **テスト項目:**

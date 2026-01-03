@@ -91,6 +91,7 @@ def advanced_dataframe(
     expandable: bool = False,
     sub_rows_key: str = "subRows",
     show_summary: bool = True,
+    column_config: dict[str, dict[str, Any]] | None = None,
     key: str | None = None,
 ) -> list[int]:
     """
@@ -140,6 +141,12 @@ def advanced_dataframe(
         Trueの場合、テーブル下部に固定されたサマリー行が表示されます
         数値カラムは合計、Boolean型カラムはTrue率（%）を表示します
         階層データの場合は親行のみを集計対象とします
+    column_config : dict[str, dict[str, Any]] or None, optional
+        カラムごとの表示設定、デフォルトはNone
+        各カラム名をキーとして、以下の設定が可能です:
+        - "prefix": セル値の前に表示する文字列（例: "¥", "$"）
+        - "suffix": セル値の後に表示する文字列（例: "%", " USD"）
+        Boolean型カラムには適用されません（True/False表示のまま）
     key : str or None, optional
         Streamlitコンポーネントの一意なキー
 
@@ -211,6 +218,22 @@ def advanced_dataframe(
     ...     ],
     ...     key="grouped_table"
     ... )
+    >>>
+    >>> # カラムごとのprefix/suffix設定
+    >>> df_sales = pd.DataFrame({
+    ...     "商品名": ["商品A", "商品B"],
+    ...     "価格": [1000, 2000],
+    ...     "割引率": [10, 20]
+    ... })
+    >>> advanced_dataframe(
+    ...     data=df_sales,
+    ...     height=300,
+    ...     column_config={
+    ...         "価格": {"prefix": "¥"},
+    ...         "割引率": {"suffix": "%"}
+    ...     },
+    ...     key="prefix_suffix_table"
+    ... )
     """
     # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
     # to_json → json.loads でNaN/NaT を null に変換（JSONではNaNは無効な値のため）
@@ -249,6 +272,14 @@ def advanced_dataframe(
                 "enabled": True,
                 # typeは省略（フロントエンドで自動判定）
             }
+
+        # column_configからprefix/suffixを取得してマージ
+        if column_config and col in column_config:
+            config = column_config[col]
+            if "prefix" in config:
+                col_config["prefix"] = config["prefix"]
+            if "suffix" in config:
+                col_config["suffix"] = config["suffix"]
 
         columns_json.append(col_config)
 

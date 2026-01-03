@@ -24,6 +24,10 @@ export interface ColumnConfig {
   enableResizing?: boolean
   /** フィルタ設定（Phase 2で追加） */
   filterConfig?: FilterConfig
+  /** セル値の前に表示する文字列（例: "¥", "$"） */
+  prefix?: string
+  /** セル値の後に表示する文字列（例: "%", " USD"） */
+  suffix?: string
 }
 
 /**

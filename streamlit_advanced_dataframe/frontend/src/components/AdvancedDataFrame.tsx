@@ -378,6 +378,7 @@ export function AdvancedDataFrame({
           const value = info.getValue()
 
           // boolean型カラムの場合、チェックボックスで表示（読み取り専用）
+          // prefix/suffixは適用しない
           if (booleanColumns.has(col.id) && typeof value === 'boolean') {
             return (
               <div className="flex items-center justify-center">
@@ -396,12 +397,21 @@ export function AdvancedDataFrame({
             )
           }
 
+          // prefix/suffixを適用
+          const prefix = col.prefix ?? ''
+          const suffix = col.suffix ?? ''
+
           // 数値カラムの場合、ユーザーのロケールに従って3桁区切りでフォーマット
           if (numericColumns.has(col.id) && typeof value === 'number') {
-            return value.toLocaleString()
+            return `${prefix}${value.toLocaleString()}${suffix}`
           }
 
-          return value as string
+          // nullやundefinedの場合はそのまま表示（prefix/suffixなし）
+          if (value == null || value === '') {
+            return value as string
+          }
+
+          return `${prefix}${value}${suffix}`
         },
         // 日本語対応のカスタムソート関数
         sortingFn: (rowA, rowB, columnId) => {
@@ -1859,9 +1869,23 @@ export function AdvancedDataFrame({
                   const isBoolColumn = booleanColumns.has(colId)
                   const isNumericColumn = numericColumns.has(colId)
 
+                  // カラム設定からprefix/suffixを取得
+                  const colConfig = columns.find((c) => c.id === colId)
+                  const prefix = colConfig?.prefix ?? ''
+                  const suffix = colConfig?.suffix ?? ''
+
                   // 数値カラムの場合、3桁区切りでフォーマット
-                  const displayValue =
-                    typeof value === 'number' ? value.toLocaleString() : value
+                  // boolカラム（True率）はprefix/suffixを適用しない
+                  let displayValue: string | number
+                  if (isBoolColumn) {
+                    displayValue = value
+                  } else if (typeof value === 'number') {
+                    displayValue = `${prefix}${value.toLocaleString()}${suffix}`
+                  } else if (value !== '' && value != null) {
+                    displayValue = `${prefix}${value}${suffix}`
+                  } else {
+                    displayValue = value
+                  }
 
                   // 値があるかどうか（Σアイコン表示判定用）
                   const hasValue = value !== '' && value != null
