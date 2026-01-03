@@ -1,5 +1,10 @@
 # streamlit-advanced-dataframe
 
+[![PyPI version](https://img.shields.io/pypi/v/streamlit-advanced-dataframe)](https://pypi.org/project/streamlit-advanced-dataframe/)
+[![Python version](https://img.shields.io/pypi/pyversions/streamlit-advanced-dataframe)](https://pypi.org/project/streamlit-advanced-dataframe/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://img.shields.io/pypi/dm/streamlit-advanced-dataframe)](https://pypi.org/project/streamlit-advanced-dataframe/)
+
 Streamlit's `st.dataframe` with advanced features using TanStack Table.
 
 ## Installation
