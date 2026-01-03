@@ -126,6 +126,8 @@ export function AdvancedDataFrame({
 
   // 行選択状態管理（選択された行のインデックス配列）
   const [selectedRowIndices, setSelectedRowIndices] = useState<number[]>([])
+  // ユーザーが選択を変更したかどうかのフラグ（初回レンダリング時のsetComponentValue呼び出しを防ぐ）
+  const hasUserSelectedRef = useRef(false)
 
   // カラムリサイズモード
   const [columnResizeMode] = useState<ColumnResizeMode>('onChange')
@@ -581,6 +583,8 @@ export function AdvancedDataFrame({
               <Checkbox
                 checked={isChecked}
                 onCheckedChange={() => {
+                  // ユーザー操作フラグを立てる
+                  hasUserSelectedRef.current = true
                   if (selectionMode === 'single-row') {
                     // 単一選択モード: 同じ行をクリックで解除、別の行で置き換え
                     setSelectedRowIndices(
@@ -1210,9 +1214,9 @@ export function AdvancedDataFrame({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [selectedCells, table, columnIds])
 
-  // 行選択状態が変更されたらStreamlitへ通知
+  // 行選択状態が変更されたらStreamlitへ通知（ユーザー操作時のみ）
   useEffect(() => {
-    if (selectionMode) {
+    if (selectionMode && hasUserSelectedRef.current) {
       Streamlit.setComponentValue(selectedRowIndices)
     }
   }, [selectedRowIndices, selectionMode])
