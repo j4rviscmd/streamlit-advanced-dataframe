@@ -58,11 +58,30 @@ function MyComponent() {
     }
   }, [])
 
+  // フレーム高さを確実に設定するヘルパー関数
+  // requestAnimationFrameを2回使用してDOM描画完了を待つ
+  const setFrameHeightSafely = () => {
+    if (!isMountedRef.current) return
+    // 1回目のrAF: ブラウザの次の描画フレームを待つ
+    requestAnimationFrame(() => {
+      if (!isMountedRef.current) return
+      // 2回目のrAF: レイアウト計算が完了するのを待つ
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          Streamlit.setFrameHeight()
+        }
+      })
+    })
+  }
+
+  // 初回マウント時にフレーム高さを設定
+  useEffect(() => {
+    setFrameHeightSafely()
+  }, [])
+
   // データやpropsが変わった時にStreamlitにフレームの高さを通知
   useEffect(() => {
-    if (isMountedRef.current) {
-      Streamlit.setFrameHeight()
-    }
+    setFrameHeightSafely()
   }, [data, columns, height, expandable, showRowCount])
 
   // Streamlitテーマに応じて.darkクラスを適用（shadcn/ui用）
