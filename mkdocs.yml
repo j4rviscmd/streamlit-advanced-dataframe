@@ -1,0 +1,61 @@
+site_name: Advanced DataFrame
+site_description: Streamlit's st.dataframe with advanced features using TanStack Table
+site_url: https://j4rviscmd.github.io/streamlit-advanced-dataframe/
+repo_url: https://github.com/j4rviscmd/streamlit-advanced-dataframe
+repo_name: j4rviscmd/streamlit-advanced-dataframe
+
+theme:
+  name: material
+  language: en
+  palette:
+    - scheme: default
+      primary: red
+      accent: red
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: red
+      accent: red
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - Features:
+      - Basic Usage: features/basic.md
+      - Filtering: features/filtering.md
+      - Row Selection: features/selection.md
+      - Header Groups: features/header-groups.md
+      - Expandable Rows: features/expandable.md
+      - Column Config: features/column-config.md
+      - Virtual Scroll: features/virtual-scroll.md
+  - Demo: demo.md
+  - API Reference: api.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/j4rviscmd/streamlit-advanced-dataframe
