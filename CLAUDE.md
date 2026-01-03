@@ -20,135 +20,154 @@
 
 ---
 
-## 開発プロセス
+## 実装済み機能一覧
 
-### フェーズ駆動開発
+| カテゴリ | 機能 | 説明 |
+|---------|------|------|
+| **基本表示** | ソート | 単一カラムの昇順/降順ソート |
+| | カラムリサイズ | ドラッグでカラム幅を調整 |
+| | カラム並び替え | ドラッグ&ドロップでカラム順序変更 |
+| **データ操作** | カラムフィルタ | テキスト/数値範囲/セレクト/日付フィルタ |
+| | グローバル検索 | 全カラム対象の検索・ハイライト |
+| | 行選択 | 単一選択/複数選択モード |
+| | セル選択 | 範囲選択、クリップボードコピー対応 |
+| **表示カスタマイズ** | ヘッダ結合 | カラムグループによるヘッダ結合 |
+| | カラム表示/非表示 | `column_order`で制御 |
+| | prefix/suffix | カラムごとに値の前後に文字列追加 |
+| **高度な表示** | 行展開 | 階層データの展開・折りたたみ |
+| | 仮想スクロール | 10万行でも60fps維持 |
+| | 集計行 | 数値合計、Bool率の自動計算 |
+| **テーマ** | ダーク/ライト | Streamlitテーマに自動追従 |
 
-このプロジェクトは5つのフェーズに分けて段階的に開発します。
+---
 
-#### **必須ルール**:
-1. **1フェーズ = 1 featureブランチ**
-   - ブランチ命名: `feature/phase{N}-{description}`
-   - 例: `feature/phase1-basic-ui`, `feature/phase2-filtering`
+## Python API
 
-2. **各フェーズ完了時にユーザー動作確認必須**
-   - 実装完了後、必ずデモアプリ（`src/main.py`）を更新
-   - ユーザーに動作確認を依頼し、承認を得てから次フェーズへ進む
-   - 承認なしで次フェーズに進むことは禁止
+```python
+from streamlit_advanced_dataframe import advanced_dataframe
 
-3. **フェーズごとにPython API（props）を拡張**
-   - 各フェーズで `my_component/__init__.py` の引数を追加
-   - TypeScript型定義（`frontend/src/types/table.ts`）も同期更新
-   - 後方互換性を維持（既存propsのデフォルト値設定）
+selected_rows = advanced_dataframe(
+    data: pd.DataFrame,                    # 表示するDataFrame
+    *,
+    height: int = 600,                     # テーブルの高さ（px）
+    use_container_width: bool = False,     # 親要素の幅いっぱいに表示
+    selection_mode: Literal["single-row", "multi-row"] | None = None,
+                                           # 行選択モード
+    filterable_columns: list[str] | None = None,
+                                           # フィルタ有効カラム
+    show_row_count: bool = False,          # フィルタ時の行数表示
+    column_order: list[str] | None = None, # 表示カラムと順序
+    header_groups: list[dict] | None = None,
+                                           # ヘッダグループ設定
+    expandable: bool = False,              # 行展開機能
+    sub_rows_key: str = "subRows",         # サブ行データのキー
+    show_summary: bool = True,             # 集計行の表示
+    column_config: dict[str, dict] | None = None,
+                                           # カラムごとの表示設定（prefix/suffix）
+    key: str | None = None,                # コンポーネントキー
+) -> list[int]                             # 選択された行インデックス
+```
 
-#### フェーズ一覧
+### 使用例
 
-| フェーズ | 内容 | 主要ファイル |
-|---------|------|------------|
-| Phase 1 | 基本UI・テーブル基盤<br>（TanStack Table統合、ソート、リサイズ） | `AdvancedDataFrame.tsx`, `useStreamlitTheme.ts` |
-| Phase 2 | データ操作・検索<br>（フィルタ、グローバル検索、行選択） | `ColumnFilter.tsx`, `TableToolbar.tsx` |
-| Phase 3 | 表示カスタマイズ<br>（ヘッダ結合、カラム表示/非表示、並び替え） | `ColumnHeader.tsx`, カラムグループ対応 |
-| Phase 4 | 高度なデータ表示<br>（行展開、仮想スクロール） | `ExpandableRow.tsx`, 仮想化対応 |
-| Phase 5 | 付加機能<br>（エクスポート、集計、条件付き書式） | `export.ts`, `AggregationRow.tsx` |
+```python
+import pandas as pd
+from streamlit_advanced_dataframe import advanced_dataframe
+
+df = pd.DataFrame({
+    "商品名": ["商品A", "商品B", "商品C"],
+    "価格": [1000, 2500, 1800],
+    "割引率": [10, 15, 5],
+    "在庫あり": [True, False, True],
+})
+
+# 基本的な使い方
+advanced_dataframe(data=df, height=400)
+
+# フィルタ + 行選択 + prefix/suffix
+selected = advanced_dataframe(
+    data=df,
+    height=400,
+    selection_mode="multi-row",
+    filterable_columns=["商品名", "価格", "在庫あり"],
+    show_row_count=True,
+    column_config={
+        "価格": {"prefix": "¥"},
+        "割引率": {"suffix": "%"},
+    },
+)
+
+# ヘッダグループ
+advanced_dataframe(
+    data=df,
+    header_groups=[
+        {"header": "商品情報", "columns": ["商品名", "価格"]},
+        {"header": "状態", "columns": ["割引率", "在庫あり"]},
+    ],
+)
+```
+
+---
+
+## ディレクトリ構造
+
+```
+streamlit_advanced_dataframe/
+├── __init__.py                 # Python API エントリーポイント
+└── frontend/
+    ├── src/
+    │   ├── MyComponent.tsx     # Streamlit連携エントリーポイント
+    │   ├── components/
+    │   │   ├── AdvancedDataFrame.tsx  # メインテーブル
+    │   │   ├── ColumnFilter.tsx       # フィルタUI
+    │   │   ├── FilterStatus.tsx       # フィルタ状態表示
+    │   │   ├── TableToolbar.tsx       # ツールバー（検索）
+    │   │   └── ErrorBoundary.tsx      # エラーハンドリング
+    │   ├── hooks/
+    │   │   ├── useStreamlitTheme.ts   # テーマ取得
+    │   │   └── useColumnType.ts       # カラム型判定
+    │   └── types/
+    │       └── table.ts               # 型定義
+    └── dist/                   # ビルド成果物
+```
+
+---
+
+## 開発環境
+
+### 起動方法
+
+```bash
+# フロントエンド開発サーバー起動
+cd streamlit_advanced_dataframe/frontend
+npm run dev
+
+# 別ターミナルでStreamlitアプリ起動
+streamlit run examples/main.py
+```
+
+### ビルド
+
+```bash
+cd streamlit_advanced_dataframe/frontend
+npm run build
+```
 
 ---
 
 ## コーディング規約
 
-### Python側（`my_component/__init__.py`）
+### Python側
 
-```python
-def advanced_dataframe(
-    data: pd.DataFrame,
-    # 常にデフォルト値を設定（後方互換性）
-    height: int = 600,
-    key: Optional[str] = None,
-    # 新しいフェーズで追加するpropsもデフォルト値必須
-    enable_filters: bool = False,  # Phase 2で追加
-    column_groups: Optional[List[Dict]] = None,  # Phase 3で追加
-    **kwargs
-) -> Any:
-    """
-    高機能DataFrameコンポーネント。
+- 新しい引数には必ずデフォルト値を設定（後方互換性維持）
+- snake_case → camelCase変換してフロントエンドに渡す
+- NaN/NaTは`to_json`でnullに変換
 
-    Args:
-        data: 表示するDataFrame
-        height: テーブルの高さ（px）
-        key: Streamlitコンポーネントのキー
-        enable_filters: カラムフィルタの有効化（Phase 2+）
-        column_groups: ヘッダグループ設定（Phase 3+）
+### TypeScript側
 
-    Returns:
-        コンポーネントの戻り値（選択行など）
-    """
-    # データをJSON形式に変換（Reactで受け取りやすい形式）
-    data_json = data.to_dict('records')
-    columns_json = [{"id": col, "header": col} for col in data.columns]
-
-    return _component_func(
-        data=data_json,
-        columns=columns_json,
-        height=height,
-        enableFilters=enable_filters,  # camelCaseに変換
-        columnGroups=column_groups,
-        key=key,
-        default=None
-    )
-```
-
-### TypeScript側（`frontend/src/types/table.ts`）
-
-```typescript
-/**
- * Streamlitから受け取るProps型定義
- * 各フェーズで拡張される
- */
-export interface StreamlitProps {
-  // Phase 1
-  data: RowData[]
-  columns: ColumnDef<RowData>[]
-  height?: number
-
-  // Phase 2
-  enableFilters?: boolean
-  enableGlobalSearch?: boolean
-  enableRowSelection?: boolean
-
-  // Phase 3
-  columnGroups?: ColumnGroup[]
-  enableColumnVisibility?: boolean
-
-  // Phase 4
-  expandable?: boolean
-  subRowsKey?: string
-  pageSize?: number
-
-  // Phase 5
-  enableExport?: boolean
-  aggregationConfig?: Record<string, AggregationType>
-}
-```
-
-### React Component構造
-
-```
-frontend/src/
-├── MyComponent.tsx              # エントリーポイント（Streamlit連携）
-├── components/
-│   ├── AdvancedDataFrame.tsx    # メインテーブルコンポーネント
-│   ├── ColumnFilter.tsx         # フィルタUI
-│   ├── ColumnHeader.tsx         # カスタムヘッダ
-│   ├── ErrorBoundary.tsx        # エラーハンドリング・フォールバックUI
-│   ├── ExpandableRow.tsx        # 展開可能行
-│   └── TableToolbar.tsx         # ツールバー（検索、エクスポートなど）
-├── hooks/
-│   ├── useTableState.ts         # テーブル状態管理
-│   └── useStreamlitTheme.ts     # Streamlitテーマ取得
-├── types/
-│   └── table.ts                 # 型定義（StreamlitProps, RowData, etc.）
-└── styles/
-    └── streamlit-table.css      # 標準dataframeスタイル再現
-```
+- `ColumnConfig`インターフェースで型定義
+- Streamlitテーマに追従（`useStreamlitTheme`フック使用）
+- TanStack Table v8のAPIを使用
 
 ---
 
@@ -156,269 +175,60 @@ frontend/src/
 
 ### 標準st.dataframeとの統一性
 
-**絶対厳守**:
-- Streamlitの標準`st.dataframe`のUIとアニメーション感を完全再現
+- Streamlitの標準`st.dataframe`のUIを再現
 - テーマ（light/dark）に自動追従
 - フォント、色、余白、ボーダーを標準に合わせる
 
-### スタイル確認方法
-
-1. Streamlitの標準`st.dataframe`を表示
-2. ブラウザ開発者ツールでスタイルを確認
-3. 取得したCSSを`streamlit-table.css`に適用
-
-```typescript
-// useStreamlitTheme.ts - テーマ取得例
-export function useStreamlitTheme() {
-  const renderData = useRenderData()
-  const theme = renderData.theme
-
-  return {
-    isDark: theme?.base === 'dark',
-    primaryColor: theme?.primaryColor || '#FF4B4B',
-    backgroundColor: theme?.backgroundColor || '#FFFFFF',
-    secondaryBackgroundColor: theme?.secondaryBackgroundColor || '#F0F2F6',
-    textColor: theme?.textColor || '#31333F',
-    font: theme?.font || 'sans-serif',
-  }
-}
-```
-
 ---
 
-## テスト・デバッグ
+## エラーハンドリング
 
-### デモアプリ（`src/main.py`）の管理
-
-各フェーズで以下を追加:
-
-```python
-import streamlit as st
-import pandas as pd
-from components.advanced_dataframe.my_component import my_component as advanced_dataframe
-
-st.title("Advanced DataFrame Demo")
-
-# サンプルデータ
-df = pd.DataFrame({
-    "name": ["Alice", "Bob", "Charlie"],
-    "age": [25, 30, 35],
-    "city": ["Tokyo", "Osaka", "Kyoto"]
-})
-
-# Phase 1: 基本表示
-st.header("Phase 1: 基本表示")
-advanced_dataframe(data=df, height=400, key="phase1")
-
-# Phase 2: フィルタ（Phase 2実装後に追加）
-# st.header("Phase 2: フィルタ機能")
-# advanced_dataframe(data=df, enable_filters=True, key="phase2")
-
-# ... 以下各フェーズで追加
-```
-
-### 動作確認手順
-
-```bash
-# フロントエンド開発サーバー起動
-cd src/components/advanced_dataframe/my_component/frontend
-npm run dev
-
-# 別ターミナルでStreamlitアプリ起動
-cd /Users/maedatakurou/work/dev/streamlit-advanced-dataframe
-streamlit run src/main.py
-```
-
----
-
-## TanStack Table使用ガイドライン
-
-### 必須情報源
-
-- **公式ドキュメント**: https://tanstack.com/table/latest/docs/framework/react
-- **Context7で最新情報確認**: 実装前に必ずContext7 MCPで最新APIを確認すること
-  - ライブラリID: `/websites/tanstack_table` または `/tanstack/table`
-
-### 推奨パターン
-
-```typescript
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
-
-function AdvancedDataFrame({ data, columns }: Props) {
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    // フェーズごとに追加
-    // getSortedRowModel: getSortedRowModel(),        // Phase 1
-    // getFilteredRowModel: getFilteredRowModel(),    // Phase 2
-    // getExpandedRowModel: getExpandedRowModel(),    // Phase 4
-  })
-
-  return (
-    <table>
-      <thead>
-        {table.getHeaderGroups().map(headerGroup => (
-          <tr key={headerGroup.id}>
-            {headerGroup.headers.map(header => (
-              <th key={header.id}>
-                {flexRender(header.column.columnDef.header, header.getContext())}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map(row => (
-          <tr key={row.id}>
-            {row.getVisibleCells().map(cell => (
-              <td key={cell.id}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-}
-```
-
----
-
-## パフォーマンス要件
-
-### ベンチマーク目標
-
-- **10万行のデータで60fps維持**（Phase 4で仮想スクロール実装後）
-- 初回レンダリング: 1秒以内
-- ソート/フィルタ操作: 200ms以内
-
-### 最適化方針
-
-1. **Phase 4まで**: 通常のレンダリング（~1000行まで快適）
-2. **Phase 4以降**: `@tanstack/react-virtual`で仮想化対応
-
----
-
-## エラーハンドリング方針
-
-### 基本原則
-
-- **フォールバック表示**: エラー発生時もUIを崩さず、ユーザーに適切なフィードバックを提供
-- **エラーの集約**: `ErrorBoundary`コンポーネントでReactエラーを一元管理
-- **デバッグ支援**: エラー詳細はコンソールに出力し、開発者が原因を特定しやすくする
-
-### 対応済みエラーケース
-
-| カテゴリ | ケース | 対応方法 | 対応ファイル |
-|---------|--------|---------|-------------|
-| **データ変換** | NaN/None混在 | `to_json`でnullに変換 | `__init__.py` |
-| **React描画** | コンポーネントクラッシュ | ErrorBoundaryでキャッチ | `ErrorBoundary.tsx` |
-| **空データ** | カラムあり・データなし | ヘッダ + empty行（セル結合） | `AdvancedDataFrame.tsx` |
-| **空データ** | カラムなし | 空ヘッダ + empty行 | `AdvancedDataFrame.tsx` |
-
-### Python側（`__init__.py`）
-
-```python
-# NaN/NaT を null に変換してからJSONに変換（JSONではNaNは無効な値）
-data_json = json.loads(data.to_json(orient="records", default_handler=str))
-```
-
-### React側（`ErrorBoundary.tsx`）
-
-```typescript
-// MyComponent.tsx でラップ
-<ErrorBoundary>
-  <AdvancedDataFrame {...props} />
-</ErrorBoundary>
-```
-
-### 空データ表示（`AdvancedDataFrame.tsx`）
-
-- **カラムあり**: ヘッダ行 + `colspan`でセル結合した「empty」行（中央表示）
-- **カラムなし**: 空ヘッダ行 + 「empty」行
-
-```
-┌─────┬─────┬─────┐
-│  A  │  B  │  C  │  ← ヘッダ行
-├─────┴─────┴─────┤
-│      empty      │  ← セル結合で中央表示
-└─────────────────┘
-```
+| ケース | 対応方法 |
+|--------|---------|
+| NaN/None混在 | `to_json`でnullに変換 |
+| コンポーネントクラッシュ | ErrorBoundaryでキャッチ |
+| 空データ（カラムあり） | ヘッダ + empty行 |
+| 空データ（カラムなし） | 空ヘッダ + empty行 |
 
 ---
 
 ## ブランチ戦略
 
-### mainブランチ保護
-
-- **mainブランチへの直接コミット禁止**（グローバルCLAUDE.mdのルールを適用）
+- **mainブランチへの直接コミット禁止**
 - すべての変更はfeatureブランチから
-
-### フェーズごとのブランチ運用
-
-```bash
-# Phase 1開始
-git checkout -b feature/phase1-basic-ui
-
-# 実装・コミット
-git add .
-git commit -m "feat(phase1): TanStack Table統合と基本表示実装"
-
-# PR作成・レビュー・マージ後
-git checkout main
-git pull origin main
-
-# Phase 2開始
-git checkout -b feature/phase2-filtering
-```
+- ブランチ命名: `feature/{機能名}`, `fix/{バグ名}`, `refactor/{対象}`
 
 ---
 
 ## 禁止事項
 
-1. **フェーズを飛び越えた実装禁止**
-   - Phase 1が完了していないのにPhase 2の機能を実装しない
-   - 必ずユーザーの動作確認と承認を経てから次へ進む
-
-2. **標準st.dataframeのUIを独自に変更禁止**
+1. **標準st.dataframeのUIを独自に変更禁止**
    - 見た目は標準に完全準拠
    - カスタマイズは機能のみ
 
-3. **後方互換性を破壊する変更禁止**
+2. **後方互換性を破壊する変更禁止**
    - 既存のpropsのデフォルト値を変更しない
    - 型定義の破壊的変更は避ける
 
-4. **Context7を使わずにライブラリAPIを推測禁止**
+3. **Context7を使わずにライブラリAPIを推測禁止**
    - TanStack Tableの機能実装前に必ずContext7で最新ドキュメント確認
 
 ---
 
-## リリース準備（Phase 5完了後）
+## リリース準備
 
-### PyPI公開準備
+### PyPI公開
 
 1. `pyproject.toml`のメタデータ更新
 2. `README.md`に使用例とドキュメント記載
 3. `frontend/dist`ビルド確認
-4. バージョニング（semantic versioning: `0.1.0` → `1.0.0`）
-
-### ドキュメント
-
-- README.mdに全機能の使用例
-- APIリファレンス（docstring）
-- GIFでデモ動画
+4. バージョニング（semantic versioning）
 
 ---
 
-## 質問・不明点がある場合
+## 参考リンク
 
-1. **TanStack Table関連**: Context7 MCP (`/websites/tanstack_table`)
-2. **Streamlit Custom Components**: https://docs.streamlit.io/develop/concepts/custom-components
-3. **プロジェクト方針**: このCLAUDE.mdを参照
+- **TanStack Table**: https://tanstack.com/table/latest/docs/framework/react
+- **Streamlit Custom Components**: https://docs.streamlit.io/develop/concepts/custom-components
+- **Context7 MCP**: ライブラリの最新API確認用
 
----
-
-**最終更新**: 2025-12-31
-**プロジェクトステータス**: Phase 4実装中
