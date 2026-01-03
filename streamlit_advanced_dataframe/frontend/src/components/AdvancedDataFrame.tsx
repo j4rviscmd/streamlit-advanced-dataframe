@@ -124,8 +124,8 @@ export function AdvancedDataFrame({
     }
   }, [expandedCount, expandable])
 
-  // 行選択状態管理（選択された行のインデックス、単一選択のみ）
-  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
+  // 行選択状態管理（選択された行のインデックス配列）
+  const [selectedRowIndices, setSelectedRowIndices] = useState<number[]>([])
 
   // カラムリサイズモード
   const [columnResizeMode] = useState<ColumnResizeMode>('onChange')
@@ -574,16 +574,26 @@ export function AdvancedDataFrame({
 
           // 親行の元のDataFrameインデックスを取得
           const originalIndex = data.findIndex((item) => item === row.original)
-          const isChecked = selectedRowIndex === originalIndex
+          const isChecked = selectedRowIndices.includes(originalIndex)
 
           return (
             <div className="flex items-center justify-center">
               <Checkbox
                 checked={isChecked}
                 onCheckedChange={() => {
-                  setSelectedRowIndex(
-                    selectedRowIndex === originalIndex ? null : originalIndex,
-                  )
+                  if (selectionMode === 'single-row') {
+                    // 単一選択モード: 同じ行をクリックで解除、別の行で置き換え
+                    setSelectedRowIndices(
+                      isChecked ? [] : [originalIndex],
+                    )
+                  } else {
+                    // 複数選択モード: トグル動作
+                    setSelectedRowIndices((prev) =>
+                      isChecked
+                        ? prev.filter((idx) => idx !== originalIndex)
+                        : [...prev, originalIndex],
+                    )
+                  }
                 }}
                 style={{
                   // ダークテーマ対応のボーダー色
@@ -638,7 +648,7 @@ export function AdvancedDataFrame({
     numericColumns,
     booleanColumns,
     selectionMode,
-    selectedRowIndex,
+    selectedRowIndices,
     headerGroups,
     columnTypeMap,
     expandable,
@@ -1203,9 +1213,9 @@ export function AdvancedDataFrame({
   // 行選択状態が変更されたらStreamlitへ通知
   useEffect(() => {
     if (selectionMode) {
-      Streamlit.setComponentValue(selectedRowIndex)
+      Streamlit.setComponentValue(selectedRowIndices)
     }
-  }, [selectedRowIndex, selectionMode])
+  }, [selectedRowIndices, selectionMode])
 
   // FilterStatus用の値を計算
   const totalRows = data.length
@@ -1560,7 +1570,7 @@ export function AdvancedDataFrame({
               const isRowSelected =
                 selectionMode &&
                 rowOriginalIndex !== -1 &&
-                selectedRowIndex === rowOriginalIndex
+                selectedRowIndices.includes(rowOriginalIndex)
 
               return (
                 <tr

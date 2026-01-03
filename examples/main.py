@@ -273,7 +273,7 @@ def main():
         ]
     )
 
-    selected_expandable_row = advanced_dataframe(
+    selected_expandable_rows = advanced_dataframe(
         data=expandable_data,
         height=400,
         expandable=True,
@@ -283,15 +283,45 @@ def main():
         key="expandable_selection_table",
     )
 
-    if selected_expandable_row is not None:
-        st.success(f"選択された行: {selected_expandable_row}")
+    if selected_expandable_rows:
+        st.success(f"選択された行: {selected_expandable_rows}")
         st.write("選択された行のデータ:")
         st.dataframe(
-            expandable_data.iloc[[selected_expandable_row]],
+            expandable_data.iloc[selected_expandable_rows],
             use_container_width=True,
         )
     else:
         st.info("行が選択されていません")
+
+    # 複数行選択のデモ
+    st.header("3-2. 複数行選択機能")
+    st.markdown("**複数選択モード:** 複数の行を同時に選択できます")
+
+    multi_select_data = pd.DataFrame(
+        {
+            "商品名": ["りんご", "みかん", "バナナ", "ぶどう", "メロン"],
+            "価格": [150, 100, 120, 300, 500],
+            "在庫": [50, 80, 30, 20, 10],
+            "産地": ["青森", "愛媛", "フィリピン", "山梨", "北海道"],
+        }
+    )
+
+    selected_multi_rows = advanced_dataframe(
+        data=multi_select_data,
+        height=250,
+        selection_mode="multi-row",
+        key="multi_row_selection_table",
+    )
+
+    if selected_multi_rows:
+        st.success(f"選択された行: {selected_multi_rows}")
+        st.write("選択された行のデータ:")
+        st.dataframe(
+            multi_select_data.iloc[selected_multi_rows],
+            use_container_width=True,
+        )
+    else:
+        st.info("行が選択されていません（複数選択可能）")
 
     # Phase 3: ヘッダ結合（カラムグループ）機能のデモ
     st.header("4. ヘッダ結合（カラムグループ）機能（Phase 3）")

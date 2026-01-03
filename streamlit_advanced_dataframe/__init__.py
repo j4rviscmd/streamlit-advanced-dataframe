@@ -92,7 +92,7 @@ def advanced_dataframe(
     sub_rows_key: str = "subRows",
     show_summary: bool = True,
     key: str | None = None,
-) -> int | None:
+) -> list[int]:
     """
     高機能DataFrameコンポーネント
 
@@ -111,8 +111,8 @@ def advanced_dataframe(
         Trueの場合、親要素の幅いっぱいに表示されます
     selection_mode : {"single-row", "multi-row"} or None, optional
         行選択モード、デフォルトはNone（行選択無効）
-        - "single-row": 単一行選択（ラジオボタン風）
-        - "multi-row": 複数行選択（将来実装予定）
+        - "single-row": 単一行選択（1行のみ選択可能）
+        - "multi-row": 複数行選択（複数行を同時に選択可能）
     filterable_columns : list[str] or None, optional
         フィルタ機能を有効化するカラム名のリスト、デフォルトはNone
         指定されたカラムにフィルタアイコンが表示され、フィルタリングが可能になります
@@ -151,9 +151,9 @@ def advanced_dataframe(
 
     Returns
     -------
-    int | None
-        選択された行のインデックス（0始まり）
-        selection_modeがNone、または選択されていない場合はNone
+    list[int]
+        選択された行のインデックスのリスト（0始まり）
+        selection_modeがNone、または選択されていない場合は空リスト[]
 
     Examples
     --------
@@ -170,16 +170,27 @@ def advanced_dataframe(
     >>> # 基本的な使い方
     >>> advanced_dataframe(data=df, height=400, key="my_table")
     >>>
-    >>> # 行選択機能を有効化
-    >>> selected_row = advanced_dataframe(
+    >>> # 単一行選択
+    >>> selected_rows = advanced_dataframe(
     ...     data=df,
     ...     height=400,
     ...     selection_mode="single-row",
     ...     key="selectable_table"
     ... )
-    >>> if selected_row is not None:
-    ...     st.write(f"選択された行: {selected_row}")
-    ...     st.write(df.iloc[selected_row])
+    >>> if selected_rows:
+    ...     st.write(f"選択された行: {selected_rows}")
+    ...     st.write(df.iloc[selected_rows])
+    >>>
+    >>> # 複数行選択
+    >>> selected_rows = advanced_dataframe(
+    ...     data=df,
+    ...     height=400,
+    ...     selection_mode="multi-row",
+    ...     key="multi_selectable_table"
+    ... )
+    >>> if selected_rows:
+    ...     st.write(f"選択された行: {selected_rows}")
+    ...     st.write(df.iloc[selected_rows])
     >>>
     >>> # フィルタ機能を有効化
     >>> advanced_dataframe(
@@ -255,7 +266,10 @@ def advanced_dataframe(
         sub_rows_key=sub_rows_key,
         show_summary=show_summary,
         key=key,
-        default=None,
+        default=[],
     )
 
+    # 戻り値を常にlist[int]で返す
+    if component_value is None:
+        return []
     return component_value

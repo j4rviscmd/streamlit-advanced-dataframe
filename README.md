@@ -23,12 +23,23 @@ df = pd.DataFrame({
 # Basic usage
 advanced_dataframe(data=df, height=400, key="my_table")
 
-# Row selection
+# Single row selection
 selected = advanced_dataframe(
     data=df,
     selection_mode="single-row",
     key="selectable_table"
 )
+if selected:
+    st.write(f"Selected rows: {selected}")  # Returns list[int]
+
+# Multi-row selection
+selected = advanced_dataframe(
+    data=df,
+    selection_mode="multi-row",
+    key="multi_selectable_table"
+)
+if selected:
+    st.dataframe(df.iloc[selected])  # Show selected rows
 
 # Filter columns
 advanced_dataframe(
@@ -65,3 +76,7 @@ advanced_dataframe(
 | `sub_rows_key` | `str` | `"subRows"` | Key for sub-row data |
 | `show_summary` | `bool` | `True` | Show summary row |
 | `key` | `str` \| `None` | `None` | Streamlit component key |
+
+## Returns
+
+`list[int]` - List of selected row indices (0-based). Returns an empty list `[]` when no rows are selected or `selection_mode` is `None`.
