@@ -7,13 +7,15 @@
 
 Streamlit's `st.dataframe` with advanced features using TanStack Table.
 
-## Installation
+## Documentation
+
+For full documentation, features, and API reference, see the [Documentation](https://j4rviscmd.github.io/streamlit-advanced-dataframe/).
+
+## Quick Start
 
 ```bash
 pip install streamlit-advanced-dataframe
 ```
-
-## Usage
 
 ```python
 import pandas as pd
@@ -25,79 +27,5 @@ df = pd.DataFrame({
     "city": ["Tokyo", "Osaka", "Kyoto"]
 })
 
-# Basic usage
-advanced_dataframe(data=df, height=400, key="my_table")
-
-# Single row selection
-selected = advanced_dataframe(
-    data=df,
-    selection_mode="single-row",
-    key="selectable_table"
-)
-if selected:
-    st.write(f"Selected rows: {selected}")  # Returns list[int]
-
-# Multi-row selection
-selected = advanced_dataframe(
-    data=df,
-    selection_mode="multi-row",
-    key="multi_selectable_table"
-)
-if selected:
-    st.dataframe(df.iloc[selected])  # Show selected rows
-
-# Filter columns
-advanced_dataframe(
-    data=df,
-    filterable_columns=["name", "age", "city"],
-    show_row_count=True,
-    key="filterable_table"
-)
-
-# Header groups
-advanced_dataframe(
-    data=df,
-    header_groups=[
-        {"header": "Personal Info", "columns": ["name", "age"]},
-        {"header": "Location", "columns": ["city"]}
-    ],
-    key="grouped_table"
-)
-
-# Column config (prefix/suffix)
-df_sales = pd.DataFrame({
-    "product": ["Product A", "Product B"],
-    "price": [1000, 2000],
-    "discount": [10, 20]
-})
-advanced_dataframe(
-    data=df_sales,
-    column_config={
-        "price": {"prefix": "$"},
-        "discount": {"suffix": "%"}
-    },
-    key="config_table"
-)
+advanced_dataframe(data=df, height=400)
 ```
-
-## Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data` | `pd.DataFrame` | required | DataFrame to display |
-| `height` | `int` | `600` | Table height in pixels |
-| `use_container_width` | `bool` | `False` | Use full container width |
-| `selection_mode` | `"single-row"` \| `"multi-row"` \| `None` | `None` | Row selection mode |
-| `filterable_columns` | `list[str]` \| `None` | `None` | Columns to enable filtering |
-| `show_row_count` | `bool` | `False` | Show filtered row count |
-| `column_order` | `list[str]` \| `None` | `None` | Columns to display (in order) |
-| `header_groups` | `list[dict]` \| `None` | `None` | Header group configuration |
-| `expandable` | `bool` | `False` | Enable row expansion |
-| `sub_rows_key` | `str` | `"subRows"` | Key for sub-row data |
-| `show_summary` | `bool` | `True` | Show summary row |
-| `column_config` | `dict[str, dict]` \| `None` | `None` | Per-column display config (prefix/suffix) |
-| `key` | `str` \| `None` | `None` | Streamlit component key |
-
-## Returns
-
-`list[int]` - List of selected row indices (0-based). Returns an empty list `[]` when no rows are selected or `selection_mode` is `None`.
