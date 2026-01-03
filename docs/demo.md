@@ -3,14 +3,14 @@
 Experience all features of Advanced DataFrame in our interactive demo.
 
 <iframe
-  src="https://advanced-dataframe-demo.streamlit.app/?embed=true"
+  src="https://app-advanced-dataframe-ezjlvffyxpev3iima6ttwr.streamlit.app/?embed=true"
   height="800"
   style="width:100%;border:none;"
 ></iframe>
 
 !!! info "Demo Loading"
     The demo may take a few seconds to load on first visit.
-    If the demo doesn't appear, [open it in a new tab](https://advanced-dataframe-demo.streamlit.app/).
+    If the demo doesn't appear, [open it in a new tab](https://app-advanced-dataframe-ezjlvffyxpev3iima6ttwr.streamlit.app/).
 
 ## Try These Features
 
