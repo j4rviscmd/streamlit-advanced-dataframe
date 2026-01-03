@@ -1,8 +1,9 @@
 """
 Streamlit Advanced DataFrame
 
-Streamlitの標準st.dataframeを拡張した高機能カスタムコンポーネント。
-TanStack Tableを使用し、ソート、フィルタ、行選択などの機能を提供します。
+An enhanced custom component extending Streamlit's standard st.dataframe.
+Powered by TanStack Table, providing sorting, filtering, row selection,
+and more features.
 
 Usage:
     from streamlit_advanced_dataframe import advanced_dataframe
@@ -45,21 +46,21 @@ def _check_max_depth(
     current_depth: int = 1,
 ) -> int:
     """
-    階層データの最大深度を再帰的にチェックする
+    Recursively check the maximum depth of hierarchical data.
 
     Parameters
     ----------
     data : list[dict]
-        チェック対象のデータ（records形式）
+        Data to check (records format).
     sub_rows_key : str
-        サブ行データのキー名
+        Key name for sub-row data.
     current_depth : int, optional
-        現在の深度（内部使用）、デフォルトは1
+        Current depth (internal use). Default is 1.
 
     Returns
     -------
     int
-        最大深度
+        Maximum depth.
     """
     max_depth = current_depth
 
@@ -67,7 +68,7 @@ def _check_max_depth(
         if sub_rows_key in row and isinstance(row[sub_rows_key], list):
             sub_rows = row[sub_rows_key]
             if sub_rows:
-                # サブ行の深度を再帰的にチェック
+                # Recursively check sub-row depth
                 sub_depth = _check_max_depth(
                     sub_rows,
                     sub_rows_key,
@@ -95,72 +96,80 @@ def advanced_dataframe(
     key: str | None = None,
 ) -> list[int]:
     """
-    高機能DataFrameコンポーネント
+    Advanced DataFrame Component
 
-    Streamlitの標準st.dataframeを拡張した高機能テーブルコンポーネント。
-    TanStack Tableを使用し、ソート、フィルタ、行選択などの機能を提供します。
+    An enhanced table component extending Streamlit's standard st.dataframe.
+    Powered by TanStack Table, providing sorting, filtering, row selection,
+    and more features.
 
     Parameters
     ----------
     data : pd.DataFrame
-        表示するDataFrame
+        The DataFrame to display.
     height : int, optional
-        テーブルの高さ（px）、デフォルトは600
+        Table height in pixels. Default is 600.
     use_container_width : bool, optional
-        テーブルを親要素の幅いっぱいに表示するか、デフォルトはFalse
-        Falseの場合、テーブルの内容に合わせて幅が調整されます（fit-content）
-        Trueの場合、親要素の幅いっぱいに表示されます
+        Whether to expand the table to fill the parent container width.
+        Default is False.
+        When False, the table width adjusts to fit content (fit-content).
+        When True, the table expands to the full width of the parent container.
     selection_mode : {"single-row", "multi-row"} or None, optional
-        行選択モード、デフォルトはNone（行選択無効）
-        - "single-row": 単一行選択（1行のみ選択可能）
-        - "multi-row": 複数行選択（複数行を同時に選択可能）
+        Row selection mode. Default is None (row selection disabled).
+        - "single-row": Single row selection (only one row can be selected)
+        - "multi-row": Multiple row selection (multiple rows can be selected)
     filterable_columns : list[str] or None, optional
-        フィルタ機能を有効化するカラム名のリスト、デフォルトはNone
-        指定されたカラムにフィルタアイコンが表示され、フィルタリングが可能になります
-        フィルタタイプ（テキスト、数値範囲、セレクト、日付）は自動判定されます
+        List of column names to enable filtering. Default is None.
+        Specified columns will display a filter icon enabling filtering.
+        Filter types (text, numeric range, select, date) are auto-detected.
     show_row_count : bool, optional
-        フィルタ適用時の行数表示を有効化するか、デフォルトはFalse
-        Trueの場合、「全100件中25件を表示」のような表示が追加されます
+        Whether to show row count when filters are applied. Default is False.
+        When True, displays "Showing 25 of 100 rows" style message.
     column_order : list[str] or None, optional
-        表示するカラム名のリスト（順序も反映）、デフォルトはNone（全カラム表示）
-        指定されたカラムのみが指定順で表示されます
+        List of column names to display (order is preserved). Default is None
+        (all columns displayed).
+        Only specified columns are displayed in the given order.
     header_groups : list[dict] or None, optional
-        ヘッダグループ設定（ヘッダ結合）、デフォルトはNone（グループ化なし）
-        各要素は {'header': 'グループ名', 'columns': ['カラム1', 'カラム2']} の形式
-        'id'キーは省略可能（省略時は'header'を使用）
-        グループに属さないカラムは通常のヘッダとして表示されます
+        Header group configuration (header merging). Default is None
+        (no grouping).
+        Each element should be {'header': 'Group Name',
+        'columns': ['col1', 'col2']}.
+        The 'id' key is optional (uses 'header' value if omitted).
+        Columns not in any group are displayed with normal headers.
     expandable : bool, optional
-        行展開機能を有効化するか、デフォルトはFalse
-        Trueの場合、階層データを展開・折りたたみ表示できます
-        データには`sub_rows_key`で指定したキーにサブ行のリストを含める必要があります
+        Whether to enable row expansion. Default is False.
+        When True, hierarchical data can be expanded/collapsed.
+        Data must contain sub-row lists under the key specified
+        by `sub_rows_key`.
     sub_rows_key : str, optional
-        サブ行データのキー名、デフォルトは"subRows"
-        各行のこのキーにサブ行のリスト（dict）を含めることで階層表示されます
+        Key name for sub-row data. Default is "subRows".
+        Include a list of sub-row dicts under this key in each row
+        for hierarchical display.
     show_summary : bool, optional
-        サマリー行の表示を有効化するか、デフォルトはTrue
-        Trueの場合、テーブル下部に固定されたサマリー行が表示されます
-        数値カラムは合計、Boolean型カラムはTrue率（%）を表示します
-        階層データの場合は親行のみを集計対象とします
+        Whether to display the summary row. Default is True.
+        When True, a fixed summary row appears at the bottom of the table.
+        Numeric columns show sum, Boolean columns show True percentage (%).
+        For hierarchical data, only parent rows are included in calculations.
     column_config : dict[str, dict[str, Any]] or None, optional
-        カラムごとの表示設定、デフォルトはNone
-        各カラム名をキーとして、以下の設定が可能です:
-        - "prefix": セル値の前に表示する文字列（例: "¥", "$"）
-        - "suffix": セル値の後に表示する文字列（例: "%", " USD"）
-        Boolean型カラムには適用されません（True/False表示のまま）
+        Per-column display configuration. Default is None.
+        Use column names as keys with the following options:
+        - "prefix": String to display before cell value (e.g., "$", "¥")
+        - "suffix": String to display after cell value (e.g., "%", " USD")
+        Not applied to Boolean columns (remains True/False display).
     key : str or None, optional
-        Streamlitコンポーネントの一意なキー
+        Unique key for the Streamlit component.
 
     Note
     ----
-    グローバル検索機能は常に有効です。テーブル右上に検索アイコンが表示され、
-    全カラムを対象とした検索が可能です。検索クエリに一致するセルは赤系背景で
-    ハイライト表示されます。
+    Global search is always enabled. A search icon appears at the top-right
+    of the table, allowing search across all columns. Cells matching the
+    search query are highlighted with a red-tinted background.
 
     Returns
     -------
     list[int]
-        選択された行のインデックスのリスト（0始まり）
-        selection_modeがNone、または選択されていない場合は空リスト[]
+        List of selected row indices (0-based).
+        Returns empty list [] when selection_mode is None or no rows
+        are selected.
 
     Examples
     --------
@@ -174,10 +183,10 @@ def advanced_dataframe(
     ...     "city": ["Tokyo", "Osaka", "Kyoto"]
     ... })
     >>>
-    >>> # 基本的な使い方
+    >>> # Basic usage
     >>> advanced_dataframe(data=df, height=400, key="my_table")
     >>>
-    >>> # 単一行選択
+    >>> # Single row selection
     >>> selected_rows = advanced_dataframe(
     ...     data=df,
     ...     height=400,
@@ -185,10 +194,10 @@ def advanced_dataframe(
     ...     key="selectable_table"
     ... )
     >>> if selected_rows:
-    ...     st.write(f"選択された行: {selected_rows}")
+    ...     st.write(f"Selected rows: {selected_rows}")
     ...     st.write(df.iloc[selected_rows])
     >>>
-    >>> # 複数行選択
+    >>> # Multiple row selection
     >>> selected_rows = advanced_dataframe(
     ...     data=df,
     ...     height=400,
@@ -196,10 +205,10 @@ def advanced_dataframe(
     ...     key="multi_selectable_table"
     ... )
     >>> if selected_rows:
-    ...     st.write(f"選択された行: {selected_rows}")
+    ...     st.write(f"Selected rows: {selected_rows}")
     ...     st.write(df.iloc[selected_rows])
     >>>
-    >>> # フィルタ機能を有効化
+    >>> # Enable column filters
     >>> advanced_dataframe(
     ...     data=df,
     ...     height=400,
@@ -208,54 +217,55 @@ def advanced_dataframe(
     ...     key="filterable_table"
     ... )
     >>>
-    >>> # ヘッダグループ（ヘッダ結合）
+    >>> # Header groups (merged headers)
     >>> advanced_dataframe(
     ...     data=df,
     ...     height=400,
     ...     header_groups=[
-    ...         {"header": "個人情報", "columns": ["name", "age"]},
-    ...         {"header": "所在地", "columns": ["city"]}
+    ...         {"header": "Personal Info", "columns": ["name", "age"]},
+    ...         {"header": "Location", "columns": ["city"]}
     ...     ],
     ...     key="grouped_table"
     ... )
     >>>
-    >>> # カラムごとのprefix/suffix設定
+    >>> # Per-column prefix/suffix configuration
     >>> df_sales = pd.DataFrame({
-    ...     "商品名": ["商品A", "商品B"],
-    ...     "価格": [1000, 2000],
-    ...     "割引率": [10, 20]
+    ...     "product": ["Product A", "Product B"],
+    ...     "price": [1000, 2000],
+    ...     "discount": [10, 20]
     ... })
     >>> advanced_dataframe(
     ...     data=df_sales,
     ...     height=300,
     ...     column_config={
-    ...         "価格": {"prefix": "¥"},
-    ...         "割引率": {"suffix": "%"}
+    ...         "price": {"prefix": "$"},
+    ...         "discount": {"suffix": "%"}
     ...     },
     ...     key="prefix_suffix_table"
     ... )
     """
-    # DataFrameをJSON形式に変換（Reactで受け取りやすい形式）
-    # to_json → json.loads でNaN/NaT を null に変換（JSONではNaNは無効な値のため）
+    # Convert DataFrame to JSON format (React-friendly format)
+    # to_json → json.loads converts NaN/NaT to null (NaN is invalid in JSON)
     data_json: list[dict[Hashable, Any]] = json.loads(
         data.to_json(orient="records", default_handler=str)
     )
 
-    # 展開機能が有効な場合、最大深度をチェック
+    # Check maximum depth when expandable is enabled
     if expandable:
         max_depth = _check_max_depth(data_json, sub_rows_key)
         if max_depth > 5:
             st.warning(
-                f"⚠️ **階層の深さが{max_depth}階層あります。**  \n"
-                f"パフォーマンスとユーザビリティのため、**5階層以下を推奨**します。  \n"
-                f"深い階層はユーザーが構造を理解しづらくなる可能性があります。",
+                f"⚠️ **Hierarchy depth is {max_depth} levels.**  \n"
+                f"For performance and usability, **5 levels or less is "
+                f"recommended.**  \n"
+                f"Deep hierarchies may be difficult for users to understand.",
                 icon="⚠️",
             )
 
-    # カラム設定を生成
+    # Generate column configuration
     columns_json: list[dict[str, Any]] = []
     for col in data.columns:
-        # sub_rows_keyで指定されたカラムは表示カラムから除外
+        # Exclude column specified by sub_rows_key from display
         if expandable and col == sub_rows_key:
             continue
 
@@ -266,14 +276,14 @@ def advanced_dataframe(
             "enableResizing": True,
         }
 
-        # フィルタが有効なカラムの場合、filterConfigを追加
+        # Add filterConfig for columns with filtering enabled
         if filterable_columns and col in filterable_columns:
             col_config["filterConfig"] = {
                 "enabled": True,
-                # typeは省略（フロントエンドで自動判定）
+                # type is omitted (auto-detected on frontend)
             }
 
-        # column_configからprefix/suffixを取得してマージ
+        # Merge prefix/suffix from column_config
         if column_config and col in column_config:
             config = column_config[col]
             if "prefix" in config:
@@ -283,7 +293,7 @@ def advanced_dataframe(
 
         columns_json.append(col_config)
 
-    # コンポーネントを呼び出し
+    # Call the component
     component_value = _component_func(
         data=data_json,
         columns=columns_json,
@@ -300,7 +310,7 @@ def advanced_dataframe(
         default=[],
     )
 
-    # 戻り値を常にlist[int]で返す
+    # Always return list[int]
     if component_value is None:
         return []
     return component_value
