@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced DataFrame - Documentation</title>
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css"
+    />
+    <style>
+        html, body, #root {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+                         sans-serif;
+        }
+        .loading h1 {
+            color: #ff4b4b;
+            margin-bottom: 1rem;
+        }
+        .loading p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">
+            <h1>Advanced DataFrame</h1>
+            <p>Loading documentation...</p>
+        </div>
+    </div>
+    <script type="module">
+        import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js";
+
+        mount({
+            requirements: [
+                "pandas",
+                "streamlit-advanced-dataframe"
+            ],
+            entrypoint: "Home.py",
+            files: {
+                "Home.py": `
+import streamlit as st
+
+st.set_page_config(
+    page_title="Advanced DataFrame",
+    page_icon="📊",
+    layout="wide"
+)
+
+st.title("📊 Advanced DataFrame")
+st.markdown("""
+## Streamlit's st.dataframe with Advanced Features
+
+**streamlit-advanced-dataframe** is a custom Streamlit component
+that extends the standard \`st.dataframe\` with powerful features
+powered by TanStack Table.
+
+### Installation
+
+\`\`\`bash
+pip install streamlit-advanced-dataframe
+\`\`\`
+
+### Quick Start
+
+\`\`\`python
+import pandas as pd
+from streamlit_advanced_dataframe import advanced_dataframe
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Charlie"],
+    "age": [25, 30, 35],
+    "city": ["Tokyo", "Osaka", "Kyoto"]
+})
+
+advanced_dataframe(data=df, height=400)
+\`\`\`
+
+### Features
+
+- **Sorting**: Click column headers to sort
+- **Column Resize**: Drag column borders to resize
+- **Column Reorder**: Drag and drop columns
+- **Column Filters**: Text, numeric range, select, date filters
+- **Global Search**: Search across all columns with highlighting
+- **Row Selection**: Single or multi-row selection mode
+- **Header Groups**: Merge column headers
+- **Expandable Rows**: Hierarchical data display
+- **Virtual Scroll**: Handle 100k+ rows at 60fps
+- **Summary Row**: Auto-calculated sum/percentage
+- **Theme**: Auto-follows Streamlit light/dark theme
+
+---
+
+**Navigate to the pages on the left sidebar to see demos of each feature.**
+""")
+`,
+                "pages/01_Basic_Usage.py": `
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Basic Usage", layout="wide")
+
+st.title("Basic Usage")
+
+st.markdown("""
+## Simple Table Display
+
+The most basic usage is just passing a DataFrame.
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    df = pd.DataFrame({
+        "Name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+        "Age": [25, 30, 35, 28, 32],
+        "City": ["Tokyo", "Osaka", "Kyoto", "Nagoya", "Fukuoka"],
+        "Score": [85.5, 92.0, 78.5, 88.0, 95.5]
+    })
+
+    st.subheader("Demo")
+    advanced_dataframe(data=df, height=300, key="basic_table")
+
+    st.subheader("Code")
+    st.code('''
+import pandas as pd
+from streamlit_advanced_dataframe import advanced_dataframe
+
+df = pd.DataFrame({
+    "Name": ["Alice", "Bob", "Charlie", "Diana", "Eve"],
+    "Age": [25, 30, 35, 28, 32],
+    "City": ["Tokyo", "Osaka", "Kyoto", "Nagoya", "Fukuoka"],
+    "Score": [85.5, 92.0, 78.5, 88.0, 95.5]
+})
+
+advanced_dataframe(data=df, height=300)
+''', language="python")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+    st.info("Custom component may not be available in stlite environment.")
+`,
+                "pages/02_Filtering.py": `
+import streamlit as st
+import pandas as pd
+import random
+
+st.set_page_config(page_title="Filtering", layout="wide")
+
+st.title("Column Filtering")
+
+st.markdown("""
+## Enable Column Filters
+
+Use \`filterable_columns\` to enable filtering on specific columns.
+Filter types are auto-detected based on column data types.
+
+- **Text columns**: Text search filter
+- **Numeric columns**: Range slider filter
+- **Boolean columns**: Select filter (True/False)
+- **Date columns**: Date range filter
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    random.seed(42)
+    categories = ["Electronics", "Clothing", "Food", "Books", "Sports"]
+
+    df = pd.DataFrame({
+        "Product": [f"Product {i}" for i in range(1, 51)],
+        "Category": [random.choice(categories) for _ in range(50)],
+        "Price": [random.randint(100, 10000) for _ in range(50)],
+        "Stock": [random.randint(0, 100) for _ in range(50)],
+        "Available": [random.choice([True, False]) for _ in range(50)]
+    })
+
+    st.subheader("Demo")
+    advanced_dataframe(
+        data=df,
+        height=400,
+        filterable_columns=["Category", "Price", "Stock", "Available"],
+        show_row_count=True,
+        key="filter_table"
+    )
+
+    st.subheader("Code")
+    st.code('''
+advanced_dataframe(
+    data=df,
+    height=400,
+    filterable_columns=["Category", "Price", "Stock", "Available"],
+    show_row_count=True
+)
+''', language="python")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+`,
+                "pages/03_Row_Selection.py": `
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Row Selection", layout="wide")
+
+st.title("Row Selection")
+
+st.markdown("""
+## Selection Modes
+
+- **single-row**: Only one row can be selected at a time
+- **multi-row**: Multiple rows can be selected
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    df = pd.DataFrame({
+        "Product": ["Apple", "Banana", "Orange", "Grape", "Melon"],
+        "Price": [150, 100, 120, 300, 500],
+        "Stock": [50, 80, 30, 20, 10]
+    })
+
+    st.subheader("Single Row Selection")
+    selected_single = advanced_dataframe(
+        data=df,
+        height=250,
+        selection_mode="single-row",
+        key="single_select"
+    )
+    if selected_single:
+        st.success(f"Selected row index: {selected_single}")
+
+    st.subheader("Multi Row Selection")
+    selected_multi = advanced_dataframe(
+        data=df,
+        height=250,
+        selection_mode="multi-row",
+        key="multi_select"
+    )
+    if selected_multi:
+        st.success(f"Selected row indices: {selected_multi}")
+        st.dataframe(df.iloc[selected_multi])
+
+    st.subheader("Code")
+    st.code('''
+# Single row selection
+selected = advanced_dataframe(
+    data=df,
+    selection_mode="single-row"
+)
+
+# Multi row selection
+selected = advanced_dataframe(
+    data=df,
+    selection_mode="multi-row"
+)
+
+if selected:
+    st.dataframe(df.iloc[selected])
+''', language="python")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+`,
+                "pages/04_Header_Groups.py": `
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Header Groups", layout="wide")
+
+st.title("Header Groups")
+
+st.markdown("""
+## Merge Column Headers
+
+Use \`header_groups\` to group multiple columns under a single header.
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    df = pd.DataFrame({
+        "Name": ["Product A", "Product B", "Product C"],
+        "Category": ["Electronics", "Clothing", "Food"],
+        "Price": [1000, 2000, 500],
+        "Stock": [50, 30, 100],
+        "Sales": [120, 85, 200],
+        "Rating": [4.5, 4.8, 4.2]
+    })
+
+    st.subheader("Demo")
+    advanced_dataframe(
+        data=df,
+        height=300,
+        header_groups=[
+            {"header": "Product Info", "columns": ["Name", "Category"]},
+            {"header": "Inventory", "columns": ["Price", "Stock", "Sales"]},
+            {"header": "Review", "columns": ["Rating"]}
+        ],
+        key="groups_table"
+    )
+
+    st.subheader("Code")
+    st.code('''
+advanced_dataframe(
+    data=df,
+    header_groups=[
+        {"header": "Product Info", "columns": ["Name", "Category"]},
+        {"header": "Inventory", "columns": ["Price", "Stock", "Sales"]},
+        {"header": "Review", "columns": ["Rating"]}
+    ]
+)
+''', language="python")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+`,
+                "pages/05_Expandable_Rows.py": `
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Expandable Rows", layout="wide")
+
+st.title("Expandable Rows")
+
+st.markdown("""
+## Hierarchical Data Display
+
+Use \`expandable=True\` to enable row expansion for hierarchical data.
+Include sub-rows under the \`subRows\` key (or custom key via \`sub_rows_key\`).
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    data = pd.DataFrame([
+        {
+            "Category": "Electronics",
+            "Sales": 120000,
+            "subRows": [
+                {"Category": "TV", "Sales": 80000},
+                {"Category": "Phone", "Sales": 40000}
+            ]
+        },
+        {
+            "Category": "Clothing",
+            "Sales": 50000,
+            "subRows": [
+                {"Category": "Men's", "Sales": 20000},
+                {"Category": "Women's", "Sales": 30000}
+            ]
+        },
+        {
+            "Category": "Food",
+            "Sales": 80000,
+            "subRows": [
+                {"Category": "Fruits", "Sales": 30000},
+                {"Category": "Vegetables", "Sales": 50000}
+            ]
+        }
+    ])
+
+    st.subheader("Demo")
+    st.markdown("*Click the arrow icons to expand/collapse rows*")
+    advanced_dataframe(
+        data=data,
+        height=350,
+        expandable=True,
+        key="expandable_table"
+    )
+
+    st.subheader("Code")
+    st.code('''
+data = pd.DataFrame([
+    {
+        "Category": "Electronics",
+        "Sales": 120000,
+        "subRows": [
+            {"Category": "TV", "Sales": 80000},
+            {"Category": "Phone", "Sales": 40000}
+        ]
+    },
+    # ... more rows
+])
+
+advanced_dataframe(
+    data=data,
+    expandable=True
+)
+''', language="python")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+`,
+                "pages/06_Column_Config.py": `
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Column Config", layout="wide")
+
+st.title("Column Config (Prefix/Suffix)")
+
+st.markdown("""
+## Per-Column Display Configuration
+
+Use \`column_config\` to add prefix or suffix to column values.
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    df = pd.DataFrame({
+        "Product": ["Product A", "Product B", "Product C"],
+        "Price": [1000, 2500, 1800],
+        "Discount": [10, 15, 5],
+        "Margin": [25.5, 30.2, 18.8]
+    })
+
+    st.subheader("Demo")
+    advanced_dataframe(
+        data=df,
+        height=250,
+        column_config={
+            "Price": {"prefix": "$"},
+            "Discount": {"suffix": "%"},
+            "Margin": {"prefix": "+", "suffix": "%"}
+        },
+        key="config_table"
+    )
+
+    st.subheader("Code")
+    st.code('''
+advanced_dataframe(
+    data=df,
+    column_config={
+        "Price": {"prefix": "$"},
+        "Discount": {"suffix": "%"},
+        "Margin": {"prefix": "+", "suffix": "%"}
+    }
+)
+''', language="python")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+`,
+                "pages/07_Virtual_Scroll.py": `
+import streamlit as st
+import pandas as pd
+import random
+
+st.set_page_config(page_title="Virtual Scroll", layout="wide")
+
+st.title("Virtual Scroll Performance")
+
+st.markdown("""
+## Handle Large Datasets
+
+Advanced DataFrame uses virtualization to render only visible rows,
+maintaining 60fps even with 100,000+ rows.
+""")
+
+try:
+    from streamlit_advanced_dataframe import advanced_dataframe
+
+    st.subheader("Demo: 10,000 Rows")
+
+    random.seed(42)
+    categories = ["A", "B", "C", "D", "E"]
+
+    df = pd.DataFrame({
+        "ID": [f"ID{i:05d}" for i in range(1, 10001)],
+        "Name": [f"Item {i}" for i in range(1, 10001)],
+        "Category": [random.choice(categories) for _ in range(10000)],
+        "Value": [random.randint(100, 10000) for _ in range(10000)],
+        "Active": [random.choice([True, False]) for _ in range(10000)]
+    })
+
+    advanced_dataframe(
+        data=df,
+        height=500,
+        filterable_columns=["Category", "Value", "Active"],
+        show_row_count=True,
+        show_summary=True,
+        key="virtual_scroll_table"
+    )
+
+    st.info(f"Total rows: {len(df):,}")
+
+except ImportError as e:
+    st.error(f"Failed to load component: {e}")
+`
+            }
+        }, document.getElementById("root"));
+    </script>
+</body>
+</html>

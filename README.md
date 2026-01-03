@@ -58,6 +58,21 @@ advanced_dataframe(
     ],
     key="grouped_table"
 )
+
+# Column config (prefix/suffix)
+df_sales = pd.DataFrame({
+    "product": ["Product A", "Product B"],
+    "price": [1000, 2000],
+    "discount": [10, 20]
+})
+advanced_dataframe(
+    data=df_sales,
+    column_config={
+        "price": {"prefix": "$"},
+        "discount": {"suffix": "%"}
+    },
+    key="config_table"
+)
 ```
 
 ## Parameters
@@ -75,6 +90,7 @@ advanced_dataframe(
 | `expandable` | `bool` | `False` | Enable row expansion |
 | `sub_rows_key` | `str` | `"subRows"` | Key for sub-row data |
 | `show_summary` | `bool` | `True` | Show summary row |
+| `column_config` | `dict[str, dict]` \| `None` | `None` | Per-column display config (prefix/suffix) |
 | `key` | `str` \| `None` | `None` | Streamlit component key |
 
 ## Returns

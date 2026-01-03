@@ -24,7 +24,7 @@ __all__ = ["advanced_dataframe"]
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
 # the component, and True when we're ready to package and distribute it.
-_RELEASE = False
+_RELEASE = True
 
 # Declare a Streamlit component
 if not _RELEASE:
