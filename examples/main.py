@@ -9,10 +9,6 @@ def main():
     st.set_page_config(page_title=TITLE, layout="wide")
     st.title(TITLE)
 
-    empty = pd.DataFrame(columns=["A", "B", "C"])
-    advanced_dataframe(empty, show_summary=False)
-    st.dataframe(empty)
-
     # サンプルデータ3: 数値データ
     st.header("13. 数値データのソート確認")
     df_numbers = pd.DataFrame(
@@ -114,7 +110,7 @@ def main():
         "**パフォーマンステスト:** スクロール、ソート、フィルタ、検索の応答性を確認してください"
     )
 
-    st.dataframe(df_10000, hide_index=True)
+    # st.dataframe(df_10000, hide_index=True)
     advanced_dataframe(
         data=df_10000,
         use_container_width=True,
@@ -286,10 +282,10 @@ def main():
     if selected_expandable_rows:
         st.success(f"選択された行: {selected_expandable_rows}")
         st.write("選択された行のデータ:")
-        st.dataframe(
-            expandable_data.iloc[selected_expandable_rows],
-            use_container_width=True,
-        )
+        # st.dataframe(
+        #     expandable_data.iloc[selected_expandable_rows],
+        #     use_container_width=True,
+        # )
     else:
         st.info("行が選択されていません")
 
