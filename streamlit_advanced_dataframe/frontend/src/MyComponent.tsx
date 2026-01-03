@@ -15,6 +15,8 @@ function MyComponent() {
   const { isDark } = useStreamlitTheme()
   // コンポーネントがマウントされているかどうかを追跡
   const isMountedRef = useRef(true)
+  // コンテナ要素のref
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Pythonから渡された引数を取得（useMemoで参照を安定化）
   const data = useMemo(
@@ -58,30 +60,31 @@ function MyComponent() {
     }
   }, [])
 
-  // フレーム高さを確実に設定するヘルパー関数
-  // requestAnimationFrameを2回使用してDOM描画完了を待つ
-  const setFrameHeightSafely = () => {
-    if (!isMountedRef.current) return
-    // 1回目のrAF: ブラウザの次の描画フレームを待つ
-    requestAnimationFrame(() => {
-      if (!isMountedRef.current) return
-      // 2回目のrAF: レイアウト計算が完了するのを待つ
-      requestAnimationFrame(() => {
-        if (isMountedRef.current) {
-          Streamlit.setFrameHeight()
-        }
-      })
-    })
-  }
-
-  // 初回マウント時にフレーム高さを設定
+  // ResizeObserverでコンテナサイズの変更を監視し、フレーム高さを自動更新
   useEffect(() => {
-    setFrameHeightSafely()
+    if (!containerRef.current) return
+
+    const observer = new ResizeObserver(() => {
+      if (isMountedRef.current) {
+        Streamlit.setFrameHeight()
+      }
+    })
+
+    observer.observe(containerRef.current)
+
+    // 初回も明示的に高さを設定
+    Streamlit.setFrameHeight()
+
+    return () => {
+      observer.disconnect()
+    }
   }, [])
 
   // データやpropsが変わった時にStreamlitにフレームの高さを通知
   useEffect(() => {
-    setFrameHeightSafely()
+    if (isMountedRef.current) {
+      Streamlit.setFrameHeight()
+    }
   }, [data, columns, height, expandable, showRowCount])
 
   // Streamlitテーマに応じて.darkクラスを適用（shadcn/ui用）
@@ -94,9 +97,11 @@ function MyComponent() {
   }, [isDark])
 
   return (
-    <ErrorBoundary>
-      <AdvancedDataFrame {...props} />
-    </ErrorBoundary>
+    <div ref={containerRef}>
+      <ErrorBoundary>
+        <AdvancedDataFrame {...props} />
+      </ErrorBoundary>
+    </div>
   )
 }
 
