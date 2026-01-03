@@ -24,34 +24,34 @@ function MyComponent() {
     [renderData.args],
   )
   const height = renderData.args['height']
-  const fullWidth = renderData.args['full_width']
-  const enableRowSelection = renderData.args['enable_row_selection']
-  const showFilterRecords = renderData.args['show_filter_records']
-  const visibleColumns = renderData.args['visible_columns']
-  const columnGroups = renderData.args['column_groups']
+  const useContainerWidth = renderData.args['use_container_width']
+  const selectionMode = renderData.args['selection_mode']
+  const showRowCount = renderData.args['show_row_count']
+  const columnOrder = renderData.args['column_order']
+  const headerGroups = renderData.args['header_groups']
   const expandable = renderData.args['expandable']
   const subRowsKey = renderData.args['sub_rows_key']
-  const showAggregation = renderData.args['show_aggregation']
+  const showSummary = renderData.args['show_summary']
 
   // StreamlitPropsに変換
   const props: StreamlitProps = {
     data,
     columns,
     height,
-    fullWidth,
-    enableRowSelection,
-    showFilterRecords,
-    visibleColumns,
-    columnGroups,
+    useContainerWidth,
+    selectionMode,
+    showRowCount,
+    columnOrder,
+    headerGroups,
     expandable,
     subRowsKey,
-    showAggregation,
+    showSummary,
   }
 
   // データやpropsが変わった時にStreamlitにフレームの高さを通知
   useEffect(() => {
     Streamlit.setFrameHeight()
-  }, [data, columns, height, expandable, showFilterRecords])
+  }, [data, columns, height, expandable, showRowCount])
 
   // Streamlitテーマに応じて.darkクラスを適用（shadcn/ui用）
   useEffect(() => {

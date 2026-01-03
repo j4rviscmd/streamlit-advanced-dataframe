@@ -76,18 +76,22 @@ const ROW_HEIGHT = 36
  * AdvancedDataFrameコンポーネント
  */
 export function AdvancedDataFrame({
-  data,
-  columns,
+  data: rawData,
+  columns: rawColumns,
   height,
-  fullWidth = false,
-  enableRowSelection = false,
-  showFilterRecords = false,
-  visibleColumns,
-  columnGroups,
+  useContainerWidth = false,
+  selectionMode,
+  showRowCount = false,
+  columnOrder,
+  headerGroups,
   expandable = false,
   subRowsKey = 'subRows',
-  showAggregation = true,
+  showSummary = true,
 }: StreamlitProps) {
+  // データとカラムの検証（undefinedやnullの場合は空配列にフォールバック）
+  const data = Array.isArray(rawData) ? rawData : []
+  const columns = Array.isArray(rawColumns) ? rawColumns : []
+
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
 
@@ -110,7 +114,7 @@ export function AdvancedDataFrame({
   useEffect(() => {
     if (expandable && tableRef.current) {
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         // document.body.scrollHeightではなく、実際のテーブルコンテナの高さを測定
         // （iframeの高さが固定されている場合、body.scrollHeightは縮小されないため）
         const newHeight =
@@ -121,11 +125,14 @@ export function AdvancedDataFrame({
           Streamlit.setFrameHeight(newHeight)
         }
       }, 100)
+      return () => clearTimeout(timer)
     }
   }, [expandedCount, expandable])
 
-  // 行選択状態管理（選択された行のインデックス、単一選択のみ）
-  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null)
+  // 行選択状態管理（選択された行のインデックス配列）
+  const [selectedRowIndices, setSelectedRowIndices] = useState<number[]>([])
+  // ユーザーが選択を変更したかどうかのフラグ（初回レンダリング時のsetComponentValue呼び出しを防ぐ）
+  const hasUserSelectedRef = useRef(false)
 
   // カラムリサイズモード
   const [columnResizeMode] = useState<ColumnResizeMode>('onChange')
@@ -157,7 +164,7 @@ export function AdvancedDataFrame({
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
 
   // カラム順序の状態管理（Phase 3）
-  const [columnOrder, setColumnOrder] = useState<string[]>([])
+  const [tableColumnOrder, setTableColumnOrder] = useState<string[]>([])
 
   // ドラッグ中のカラムID
   const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null)
@@ -523,18 +530,18 @@ export function AdvancedDataFrame({
     // データカラムを作成
     const dataColumns = columns.map(createColumnDef)
 
-    // カラムをグループ化（columnGroupsが指定されている場合）
+    // カラムをグループ化（headerGroupsが指定されている場合）
     let finalColumns: ColumnDef<RowData, unknown>[]
 
-    if (columnGroups && columnGroups.length > 0) {
+    if (headerGroups && headerGroups.length > 0) {
       // グループに属するカラムIDのセットを作成
       const groupedColumnIds = new Set<string>()
-      columnGroups.forEach((group) => {
+      headerGroups.forEach((group) => {
         group.columns.forEach((colId) => groupedColumnIds.add(colId))
       })
 
       // グループオブジェクトを作成
-      const groupColumns: ColumnDef<RowData, unknown>[] = columnGroups.map(
+      const groupColumns: ColumnDef<RowData, unknown>[] = headerGroups.map(
         (group) => ({
           id: group.id ?? group.header, // idが未指定の場合はheaderを使用
           header: group.header,
@@ -559,7 +566,7 @@ export function AdvancedDataFrame({
     const specialColumns: ColumnDef<RowData, unknown>[] = []
 
     // 行選択機能が有効な場合、チェックボックスカラムを先頭に追加
-    if (enableRowSelection) {
+    if (selectionMode) {
       const selectionColumn: ColumnDef<RowData, unknown> = {
         id: '__selection__',
         header: '',
@@ -574,16 +581,28 @@ export function AdvancedDataFrame({
 
           // 親行の元のDataFrameインデックスを取得
           const originalIndex = data.findIndex((item) => item === row.original)
-          const isChecked = selectedRowIndex === originalIndex
+          const isChecked = selectedRowIndices.includes(originalIndex)
 
           return (
             <div className="flex items-center justify-center">
               <Checkbox
                 checked={isChecked}
                 onCheckedChange={() => {
-                  setSelectedRowIndex(
-                    selectedRowIndex === originalIndex ? null : originalIndex,
-                  )
+                  // ユーザー操作フラグを立てる
+                  hasUserSelectedRef.current = true
+                  if (selectionMode === 'single-row') {
+                    // 単一選択モード: 同じ行をクリックで解除、別の行で置き換え
+                    setSelectedRowIndices(
+                      isChecked ? [] : [originalIndex],
+                    )
+                  } else {
+                    // 複数選択モード: トグル動作
+                    setSelectedRowIndices((prev) =>
+                      isChecked
+                        ? prev.filter((idx) => idx !== originalIndex)
+                        : [...prev, originalIndex],
+                    )
+                  }
                 }}
                 style={{
                   // ダークテーマ対応のボーダー色
@@ -637,9 +656,9 @@ export function AdvancedDataFrame({
     columnHelper,
     numericColumns,
     booleanColumns,
-    enableRowSelection,
-    selectedRowIndex,
-    columnGroups,
+    selectionMode,
+    selectedRowIndices,
+    headerGroups,
     columnTypeMap,
     expandable,
     estimateColumnWidth,
@@ -655,13 +674,13 @@ export function AdvancedDataFrame({
     state: {
       sorting,
       columnFilters,
-      columnOrder,
+      columnOrder: tableColumnOrder,
       columnVisibility,
       expanded,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onColumnOrderChange: setColumnOrder,
+    onColumnOrderChange: setTableColumnOrder,
     onColumnVisibilityChange: setColumnVisibility,
     onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
@@ -690,7 +709,7 @@ export function AdvancedDataFrame({
    * - その他: 空白
    */
   const aggregationRow = useMemo(() => {
-    if (!showAggregation) return null
+    if (!showSummary) return null
 
     // 親行のみを抽出（階層データの場合）
     const parentRows = expandable
@@ -734,7 +753,7 @@ export function AdvancedDataFrame({
     })
 
     return aggregation
-  }, [showAggregation, tableRows, columns, booleanColumns, expandable])
+  }, [showSummary, tableRows, columns, booleanColumns, expandable])
 
   // 行の仮想化設定
   const rowVirtualizer = useVirtualizer({
@@ -779,10 +798,10 @@ export function AdvancedDataFrame({
       .reduce((sum, col) => sum + col.getSize(), 0)
   }, [table])
 
-  // fullWidth時にカラムを伸縮すべきかどうかの判定
+  // useContainerWidth時にカラムを伸縮すべきかどうかの判定
   // コンテンツ合計幅 < コンテナ幅 の場合のみ伸縮
   const shouldStretch =
-    fullWidth && containerWidth > 0 && totalContentWidth < containerWidth
+    useContainerWidth && containerWidth > 0 && totalContentWidth < containerWidth
 
   // カラム幅を計算する関数
   const getColumnWidth = useCallback(
@@ -796,15 +815,15 @@ export function AdvancedDataFrame({
 
   // カラム順序の初期化（tableColumnsが変更されたとき）
   useEffect(() => {
-    if (columnOrder.length === 0) {
+    if (tableColumnOrder.length === 0) {
       const initialOrder = tableColumns.map((col) => col.id as string)
-      setColumnOrder(initialOrder)
+      setTableColumnOrder(initialOrder)
     }
-  }, [tableColumns, columnOrder.length])
+  }, [tableColumns, tableColumnOrder.length])
 
-  // カラム可視性の初期化（visibleColumnsが指定されている場合）
+  // カラム可視性の初期化（columnOrderが指定されている場合）
   useEffect(() => {
-    if (visibleColumns && visibleColumns.length > 0) {
+    if (columnOrder && columnOrder.length > 0) {
       const visibility: Record<string, boolean> = {}
       tableColumns.forEach((col) => {
         const colId = col.id as string
@@ -812,7 +831,7 @@ export function AdvancedDataFrame({
         if (colId === '__selection__') {
           visibility[colId] = true
         } else {
-          visibility[colId] = visibleColumns.includes(colId)
+          visibility[colId] = columnOrder.includes(colId)
         }
       })
 
@@ -829,7 +848,7 @@ export function AdvancedDataFrame({
         setColumnVisibility(visibility)
       }
     }
-  }, [visibleColumns, tableColumns, columnVisibility])
+  }, [columnOrder, tableColumns, columnVisibility])
 
   /**
    * グローバル検索の一致箇所を計算
@@ -929,7 +948,7 @@ export function AdvancedDataFrame({
       e.preventDefault()
       if (!draggedColumnId || draggedColumnId === targetColumnId) return
 
-      setColumnOrder((prevOrder) => {
+      setTableColumnOrder((prevOrder) => {
         const newOrder = [...prevOrder]
         const draggedIndex = newOrder.indexOf(draggedColumnId)
         const targetIndex = newOrder.indexOf(targetColumnId)
@@ -1200,12 +1219,12 @@ export function AdvancedDataFrame({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [selectedCells, table, columnIds])
 
-  // 行選択状態が変更されたらStreamlitへ通知
+  // 行選択状態が変更されたらStreamlitへ通知（ユーザー操作時のみ）
   useEffect(() => {
-    if (enableRowSelection) {
-      Streamlit.setComponentValue(selectedRowIndex)
+    if (selectionMode && hasUserSelectedRef.current) {
+      Streamlit.setComponentValue(selectedRowIndices)
     }
-  }, [selectedRowIndex, enableRowSelection])
+  }, [selectedRowIndices, selectionMode])
 
   // FilterStatus用の値を計算
   const totalRows = data.length
@@ -1218,7 +1237,7 @@ export function AdvancedDataFrame({
       <div
         className={cn(
           'relative max-w-full overflow-auto rounded-md',
-          fullWidth ? 'w-full' : 'w-fit',
+          useContainerWidth ? 'w-full' : 'w-fit',
         )}
         style={{
           boxSizing: 'border-box',
@@ -1267,7 +1286,7 @@ export function AdvancedDataFrame({
         ref={tableRef}
         className={cn(
           'relative max-w-full overflow-auto rounded-md',
-          fullWidth ? 'w-full' : 'w-fit',
+          useContainerWidth ? 'w-full' : 'w-fit',
         )}
         style={{
           maxHeight: height ? `${height}px` : 'none',
@@ -1293,7 +1312,7 @@ export function AdvancedDataFrame({
           isVisible={isTableHovered}
         />
         <table
-          className={cn(fullWidth ? 'w-full' : 'w-fit')}
+          className={cn(useContainerWidth ? 'w-full' : 'w-fit')}
           style={{
             display: 'grid',
             borderCollapse: 'separate',
@@ -1558,9 +1577,9 @@ export function AdvancedDataFrame({
                   ? data.findIndex((item) => item === row.original)
                   : -1
               const isRowSelected =
-                enableRowSelection &&
+                selectionMode &&
                 rowOriginalIndex !== -1 &&
-                selectedRowIndex === rowOriginalIndex
+                selectedRowIndices.includes(rowOriginalIndex)
 
               return (
                 <tr
@@ -1606,7 +1625,7 @@ export function AdvancedDataFrame({
 
                     // 最初のデータカラムかどうか（ツリー線表示用）
                     const specialColumnsCount =
-                      (enableRowSelection ? 1 : 0) + (expandable ? 1 : 0)
+                      (selectionMode ? 1 : 0) + (expandable ? 1 : 0)
                     const isFirstDataColumn = cellIndex === specialColumnsCount
 
                     // ツリー線の深さとインデント
@@ -1649,7 +1668,7 @@ export function AdvancedDataFrame({
                             : `1px solid ${borderColor}`,
                           borderRight: 'none',
                           borderBottom:
-                            isLastRow || (isLastVirtualRow && !showAggregation)
+                            isLastRow || (isLastVirtualRow && !showSummary)
                               ? 'none'
                               : `1px solid ${borderColor}`,
                           backgroundColor:
@@ -1777,7 +1796,7 @@ export function AdvancedDataFrame({
           </tbody>
 
           {/* 集計行（フッター）または下部ボーダー専用行 */}
-          {showAggregation && aggregationRow ? (
+          {showSummary && aggregationRow ? (
             <tfoot
               style={{
                 display: 'grid',
@@ -1910,9 +1929,9 @@ export function AdvancedDataFrame({
       </div>
 
       {/* フィルタレコード数表示 */}
-      {showFilterRecords && (
+      {showRowCount && (
         <div
-          className={cn(fullWidth ? 'w-full' : 'w-fit')}
+          className={cn(useContainerWidth ? 'w-full' : 'w-fit')}
           style={{
             fontFamily: theme.font,
             color: textColor,
