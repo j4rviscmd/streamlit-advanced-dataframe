@@ -10,20 +10,19 @@ def main():
     st.title(TITLE)
 
     # サンプルデータ3: 数値データ
-    st.header("13. 数値データのソート確認")
-    df_numbers = pd.DataFrame(
-        {
-            "整数": [10, 5, 8, 3, 15, 1, 12],
-            "小数": [3.14, 2.71, 1.41, 9.81, 6.28, 4.67, 8.85],
-            "負の数": [-5, 10, -3, 8, -12, 0, 7],
-        }
-    )
-    advanced_dataframe(
-        data=df_numbers,
-        height=250,
-        key="numbers_table",
-        use_container_width=True,
-    )
+    # df_numbers = pd.DataFrame(
+    #     {
+    #         "整数": [10, 5, 8, 3, 15, 1, 12],
+    #         "小数": [3.14, 2.71, 1.41, 9.81, 6.28, 4.67, 8.85],
+    #         "負の数": [-5, 10, -3, 8, -12, 0, 7],
+    #     }
+    # )
+    # advanced_dataframe(
+    #     data=df_numbers,
+    #     height=250,
+    #     key="numbers_table",
+    #     use_container_width=True,
+    # )
 
     # Phase 4: 集計行のデモ（100行データでスクロール確認）
     st.header("1. 集計行機能デモ(100行データ)")
@@ -69,25 +68,25 @@ def main():
 
     st.markdown("**集計行に注目:** スクロールしても下部に固定されています")
 
-    advanced_dataframe(
-        data=df_100,
-        height=400,
-        # use_container_width=True,
-        filterable_columns=[
-            "カテゴリ",
-            "メーカー",
-            "価格",
-            "原価",
-            "在庫数",
-            "販売数",
-            "在庫あり",
-            "セール中",
-            "新商品",
-        ],
-        show_row_count=True,
-        show_summary=False,
-        key="aggregation_100_table",
-    )
+    # advanced_dataframe(
+    #     data=df_100,
+    #     height=400,
+    #     # use_container_width=True,
+    #     filterable_columns=[
+    #         "カテゴリ",
+    #         "メーカー",
+    #         "価格",
+    #         "原価",
+    #         "在庫数",
+    #         "販売数",
+    #         "在庫あり",
+    #         "セール中",
+    #         "新商品",
+    #     ],
+    #     show_row_count=True,
+    #     show_summary=False,
+    #     key="aggregation_100_table",
+    # )
 
     # 仮想スクロールのパフォーマンステスト（10,000行）
     st.header("2. 仮想スクロールパフォーマンステスト(10,000行)")
@@ -106,13 +105,10 @@ def main():
         }
     )
 
-    st.markdown(
-        "**パフォーマンステスト:** スクロール、ソート、フィルタ、検索の応答性を確認してください"
-    )
-
     # st.dataframe(df_10000, hide_index=True)
     advanced_dataframe(
         data=df_10000,
+        filterable_columns=[*df_100.columns],
         use_container_width=True,
         height=600,
         # filterable_columns=[
