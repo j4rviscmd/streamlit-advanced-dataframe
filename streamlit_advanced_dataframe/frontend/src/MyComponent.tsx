@@ -2,7 +2,7 @@ import { AdvancedDataFrame } from '@/components/AdvancedDataFrame'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useStreamlitTheme } from '@/hooks/useStreamlitTheme'
 import { StreamlitProps } from '@/types/table'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Streamlit } from 'streamlit-component-lib'
 import { useRenderData } from 'streamlit-component-lib-react-hooks'
 
@@ -13,6 +13,8 @@ import { useRenderData } from 'streamlit-component-lib-react-hooks'
 function MyComponent() {
   const renderData = useRenderData()
   const { isDark } = useStreamlitTheme()
+  // コンポーネントがマウントされているかどうかを追跡
+  const isMountedRef = useRef(true)
 
   // Pythonから渡された引数を取得（useMemoで参照を安定化）
   const data = useMemo(
@@ -48,20 +50,19 @@ function MyComponent() {
     showSummary,
   }
 
-  // コンポーネントマウント時にフレーム高さを通知（遅延実行で確実にレンダリング後に実行）
+  // マウント状態の追跡
   useEffect(() => {
-    // 初回マウント時に即座に高さを設定
-    Streamlit.setFrameHeight()
-    // 少し遅延してもう一度設定（レンダリング完了を確実にするため）
-    const timer = setTimeout(() => {
-      Streamlit.setFrameHeight()
-    }, 50)
-    return () => clearTimeout(timer)
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
   }, [])
 
   // データやpropsが変わった時にStreamlitにフレームの高さを通知
   useEffect(() => {
-    Streamlit.setFrameHeight()
+    if (isMountedRef.current) {
+      Streamlit.setFrameHeight()
+    }
   }, [data, columns, height, expandable, showRowCount])
 
   // Streamlitテーマに応じて.darkクラスを適用（shadcn/ui用）

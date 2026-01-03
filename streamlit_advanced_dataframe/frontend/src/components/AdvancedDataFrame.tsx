@@ -114,7 +114,7 @@ export function AdvancedDataFrame({
   useEffect(() => {
     if (expandable && tableRef.current) {
       // DOM更新が完了してから高さを再計算（展開・折りたたみ両方に対応）
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         // document.body.scrollHeightではなく、実際のテーブルコンテナの高さを測定
         // （iframeの高さが固定されている場合、body.scrollHeightは縮小されないため）
         const newHeight =
@@ -125,6 +125,7 @@ export function AdvancedDataFrame({
           Streamlit.setFrameHeight(newHeight)
         }
       }, 100)
+      return () => clearTimeout(timer)
     }
   }, [expandedCount, expandable])
 
