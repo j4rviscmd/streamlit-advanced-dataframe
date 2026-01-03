@@ -2,8 +2,14 @@
 
 **Streamlit's `st.dataframe` with advanced features using TanStack Table.**
 
-[![PyPI version](https://badge.fury.io/py/streamlit-advanced-dataframe.svg)](https://pypi.org/project/streamlit-advanced-dataframe/)
+[![PyPI version](https://img.shields.io/pypi/v/streamlit-advanced-dataframe)](https://pypi.org/project/streamlit-advanced-dataframe/)
+[![Python version](https://img.shields.io/pypi/pyversions/streamlit-advanced-dataframe)](https://pypi.org/project/streamlit-advanced-dataframe/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://img.shields.io/pypi/dm/streamlit-advanced-dataframe)](https://pypi.org/project/streamlit-advanced-dataframe/)
+
+## Live Demo
+
+Check out the [Demo](demo.md) page to see all features in action.
 
 ## Features
 
@@ -39,7 +45,3 @@ df = pd.DataFrame({
 
 advanced_dataframe(data=df, height=400)
 ```
-
-## Live Demo
-
-Check out the [Demo](demo.md) page to see all features in action.
