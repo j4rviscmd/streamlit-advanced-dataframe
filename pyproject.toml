@@ -9,7 +9,6 @@ keywords = ["streamlit", "dataframe", "table", "component", "tanstack-table"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
-    "Framework :: Streamlit",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
