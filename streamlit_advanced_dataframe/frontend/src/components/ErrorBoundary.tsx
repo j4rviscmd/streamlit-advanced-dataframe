@@ -49,6 +49,19 @@ export class ErrorBoundary extends Component<
   }
 
   /**
+   * propsが変更されたらエラー状態をリセット（Streamlit再実行時に回復可能にする）
+   */
+  componentDidUpdate(prevProps: ErrorBoundaryProps): void {
+    if (this.state.hasError && prevProps.children !== this.props.children) {
+      this.setState({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+      })
+    }
+  }
+
+  /**
    * エラー情報をコンソールに出力
    */
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {

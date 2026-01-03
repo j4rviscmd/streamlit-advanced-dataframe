@@ -48,6 +48,17 @@ function MyComponent() {
     showSummary,
   }
 
+  // コンポーネントマウント時にフレーム高さを通知（遅延実行で確実にレンダリング後に実行）
+  useEffect(() => {
+    // 初回マウント時に即座に高さを設定
+    Streamlit.setFrameHeight()
+    // 少し遅延してもう一度設定（レンダリング完了を確実にするため）
+    const timer = setTimeout(() => {
+      Streamlit.setFrameHeight()
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [])
+
   // データやpropsが変わった時にStreamlitにフレームの高さを通知
   useEffect(() => {
     Streamlit.setFrameHeight()

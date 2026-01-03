@@ -76,8 +76,8 @@ const ROW_HEIGHT = 36
  * AdvancedDataFrameコンポーネント
  */
 export function AdvancedDataFrame({
-  data,
-  columns,
+  data: rawData,
+  columns: rawColumns,
   height,
   useContainerWidth = false,
   selectionMode,
@@ -88,6 +88,10 @@ export function AdvancedDataFrame({
   subRowsKey = 'subRows',
   showSummary = true,
 }: StreamlitProps) {
+  // データとカラムの検証（undefinedやnullの場合は空配列にフォールバック）
+  const data = Array.isArray(rawData) ? rawData : []
+  const columns = Array.isArray(rawColumns) ? rawColumns : []
+
   const { theme, isDark, secondaryBackgroundColor, textColor } =
     useStreamlitTheme()
 
