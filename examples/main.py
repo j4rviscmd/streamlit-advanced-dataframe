@@ -10,7 +10,7 @@ def main():
     st.title(TITLE)
 
     empty = pd.DataFrame(columns=["A", "B", "C"])
-    advanced_dataframe(empty, show_aggregation=False)
+    advanced_dataframe(empty, show_summary=False)
     st.dataframe(empty)
 
     # サンプルデータ3: 数値データ
@@ -26,7 +26,7 @@ def main():
         data=df_numbers,
         height=250,
         key="numbers_table",
-        full_width=True,
+        use_container_width=True,
     )
 
     # Phase 4: 集計行のデモ（100行データでスクロール確認）
@@ -76,8 +76,8 @@ def main():
     advanced_dataframe(
         data=df_100,
         height=400,
-        # full_width=True,
-        enable_filters=[
+        # use_container_width=True,
+        filterable_columns=[
             "カテゴリ",
             "メーカー",
             "価格",
@@ -88,8 +88,8 @@ def main():
             "セール中",
             "新商品",
         ],
-        show_filter_records=True,
-        show_aggregation=False,
+        show_row_count=True,
+        show_summary=False,
         key="aggregation_100_table",
     )
 
@@ -117,9 +117,9 @@ def main():
     st.dataframe(df_10000, hide_index=True)
     advanced_dataframe(
         data=df_10000,
-        full_width=True,
+        use_container_width=True,
         height=600,
-        # enable_filters=[
+        # filterable_columns=[
         #     "カテゴリ",
         #     "メーカー",
         #     "価格",
@@ -127,8 +127,8 @@ def main():
         #     "在庫あり",
         #     "セール中",
         # ],
-        show_filter_records=True,
-        show_aggregation=True,
+        show_row_count=True,
+        show_summary=True,
         key="virtual_scroll_10000_table",
     )
 
@@ -277,9 +277,9 @@ def main():
         data=expandable_data,
         height=400,
         expandable=True,
-        enable_row_selection=True,
-        enable_filters=["カテゴリ", "売上", "在庫", "在庫あり", "セール中"],
-        show_filter_records=True,
+        selection_mode="single-row",
+        filterable_columns=["カテゴリ", "売上", "在庫", "在庫あり", "セール中"],
+        show_row_count=True,
         key="expandable_selection_table",
     )
 
@@ -315,9 +315,9 @@ def main():
 
     advanced_dataframe(
         data=df_groups,
-        enable_filters=[*df_groups.columns],
+        filterable_columns=[*df_groups.columns],
         height=300,
-        column_groups=[
+        header_groups=[
             {"header": "基本情報", "columns": ["商品名", "カテゴリ"]},
             {"header": "在庫情報", "columns": ["価格", "在庫数", "販売数"]},
             {"header": "評価", "columns": ["評価"]},
@@ -360,8 +360,8 @@ def main():
     advanced_dataframe(
         data=df_mixed,
         height=300,
-        enable_filters=["価格", "在庫", "評価", "カテゴリ"],
-        show_filter_records=True,
+        filterable_columns=["価格", "在庫", "評価", "カテゴリ"],
+        show_row_count=True,
         key="mixed_data_table",
     )
 

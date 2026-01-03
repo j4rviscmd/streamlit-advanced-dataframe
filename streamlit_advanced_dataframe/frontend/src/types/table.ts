@@ -72,7 +72,6 @@ export interface ColumnGroup {
 
 /**
  * Streamlitから受け取るProps
- * 各フェーズで段階的に拡張される
  */
 export interface StreamlitProps {
   /** テーブルに表示するデータ（行の配列） */
@@ -82,24 +81,21 @@ export interface StreamlitProps {
   /** テーブルの高さ（px）、未指定時は自動調整 */
   height?: number
   /** テーブルを親要素の幅いっぱいに表示するか（デフォルト: false） */
-  fullWidth?: boolean
-  /** 行選択機能を有効化するか（デフォルト: false）Phase 2で追加 */
-  enableRowSelection?: boolean
-  /** フィルタレコード数の表示を有効化するか（デフォルト: false）Phase 2で追加 */
-  showFilterRecords?: boolean
-  /** 表示するカラム名のリスト（Phase 3で追加） */
-  visibleColumns?: string[]
-  /** カラムグループ設定（ヘッダ結合）（Phase 3で追加） */
-  columnGroups?: ColumnGroup[]
-  /** 行展開機能を有効化するか（デフォルト: false）（Phase 4で追加） */
+  useContainerWidth?: boolean
+  /** 行選択モード: 'single-row' | 'multi-row' | undefined */
+  selectionMode?: 'single-row' | 'multi-row'
+  /** フィルタ適用時の行数表示を有効化するか（デフォルト: false） */
+  showRowCount?: boolean
+  /** 表示するカラム名のリスト（順序も反映） */
+  columnOrder?: string[]
+  /** ヘッダグループ設定（ヘッダ結合） */
+  headerGroups?: ColumnGroup[]
+  /** 行展開機能を有効化するか（デフォルト: false） */
   expandable?: boolean
-  /** サブ行データのキー名（デフォルト: 'subRows'）（Phase 4で追加） */
+  /** サブ行データのキー名（デフォルト: 'subRows'） */
   subRowsKey?: string
-  /** 集計行の表示を有効化するか（デフォルト: true）（Phase 4で追加） */
-  showAggregation?: boolean
-
-  // 以下、Phase 5以降で追加予定
-  // enableExport?: boolean
+  /** サマリー行の表示を有効化するか（デフォルト: true） */
+  showSummary?: boolean
 }
 
 /**
