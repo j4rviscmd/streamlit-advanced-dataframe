@@ -44,7 +44,15 @@ def main():
 
     # Generate 100 rows of product data
     random.seed(42)
-    categories = ["Electronics", "Clothing", "Food", "Books", "Sports", "Home", "Toys"]
+    categories = [
+        "Electronics",
+        "Clothing",
+        "Food",
+        "Books",
+        "Sports",
+        "Home",
+        "Toys",
+    ]
     brands = ["BrandA", "BrandB", "BrandC", "BrandD", "BrandE"]
 
     df_hero = pd.DataFrame(
@@ -66,7 +74,7 @@ def main():
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 advanced_dataframe(
     data=df_hero,
     height=500,
@@ -91,7 +99,7 @@ advanced_dataframe(
     show_summary=True,
     key="hero_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -117,7 +125,10 @@ advanced_dataframe(
                 "columns": ["product_id", "name", "category", "brand"],
             },
             {"header": "Pricing", "columns": ["price", "cost", "margin"]},
-            {"header": "Inventory", "columns": ["stock", "sold", "in_stock", "featured"]},
+            {
+                "header": "Inventory",
+                "columns": ["stock", "sold", "in_stock", "featured"],
+            },
             {"header": "Reviews", "columns": ["rating"]},
         ],
         column_config={
@@ -161,7 +172,7 @@ advanced_dataframe(
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 # Minimal usage
 advanced_dataframe(data=df, key="basic_table")
 
@@ -170,7 +181,7 @@ advanced_dataframe(data=df, height=300, key="basic_height")
 
 # Expand to container width
 advanced_dataframe(data=df, use_container_width=True, key="basic_width")
-''',
+""",
             language="python",
         )
 
@@ -183,7 +194,10 @@ advanced_dataframe(data=df, use_container_width=True, key="basic_width")
     with col2:
         st.markdown("**use_container_width=True:**")
         advanced_dataframe(
-            data=df_basic, height=250, use_container_width=True, key="basic_full_width"
+            data=df_basic,
+            height=250,
+            use_container_width=True,
+            key="basic_full_width",
         )
 
     st.divider()
@@ -214,7 +228,7 @@ advanced_dataframe(data=df, use_container_width=True, key="basic_width")
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 # Single row selection
 selected = advanced_dataframe(
     data=df,
@@ -232,7 +246,7 @@ selected = advanced_dataframe(
 # Use selected rows
 if selected:
     st.write(df.iloc[selected])
-''',
+""",
             language="python",
         )
 
@@ -311,14 +325,14 @@ if selected:
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 advanced_dataframe(
     data=df,
     filterable_columns=["title", "author", "year", "pages", "rating", "available"],
     show_row_count=True,  # Shows "Showing X of Y rows"
     key="filter_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -326,7 +340,14 @@ advanced_dataframe(
         data=df_filter,
         height=350,
         use_container_width=True,
-        filterable_columns=["title", "author", "year", "pages", "rating", "available"],
+        filterable_columns=[
+            "title",
+            "author",
+            "year",
+            "pages",
+            "rating",
+            "available",
+        ],
         show_row_count=True,
         key="filter_demo",
     )
@@ -360,7 +381,7 @@ advanced_dataframe(
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 advanced_dataframe(
     data=df,
     column_config={
@@ -372,7 +393,7 @@ advanced_dataframe(
     },
     key="config_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -411,7 +432,13 @@ advanced_dataframe(
         {
             "id": [1, 2, 3, 4, 5],
             "internal_code": ["X001", "X002", "X003", "X004", "X005"],
-            "customer_name": ["Acme Corp", "Tech Inc", "Global Ltd", "Local Co", "Big Corp"],
+            "customer_name": [
+                "Acme Corp",
+                "Tech Inc",
+                "Global Ltd",
+                "Local Co",
+                "Big Corp",
+            ],
             "email": [
                 "acme@example.com",
                 "tech@example.com",
@@ -420,21 +447,33 @@ advanced_dataframe(
                 "big@example.com",
             ],
             "revenue": [50000, 75000, 120000, 30000, 200000],
-            "created_at": ["2024-01-15", "2024-02-20", "2024-03-10", "2024-04-05", "2024-05-01"],
-            "updated_at": ["2024-06-01", "2024-06-15", "2024-06-20", "2024-06-25", "2024-06-30"],
+            "created_at": [
+                "2024-01-15",
+                "2024-02-20",
+                "2024-03-10",
+                "2024-04-05",
+                "2024-05-01",
+            ],
+            "updated_at": [
+                "2024-06-01",
+                "2024-06-15",
+                "2024-06-20",
+                "2024-06-25",
+                "2024-06-30",
+            ],
         }
     )
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 # Show only selected columns in custom order
 advanced_dataframe(
     data=df,
     column_order=["customer_name", "email", "revenue", "created_at"],
     key="order_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -491,7 +530,7 @@ advanced_dataframe(
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 advanced_dataframe(
     data=df,
     header_groups=[
@@ -501,7 +540,7 @@ advanced_dataframe(
     ],
     key="groups_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -511,8 +550,14 @@ advanced_dataframe(
         use_container_width=True,
         header_groups=[
             {"header": "Student Info", "columns": ["student", "grade"]},
-            {"header": "Academic Scores", "columns": ["math", "science", "english"]},
-            {"header": "Engagement", "columns": ["attendance", "participation"]},
+            {
+                "header": "Academic Scores",
+                "columns": ["math", "science", "english"],
+            },
+            {
+                "header": "Engagement",
+                "columns": ["attendance", "participation"],
+            },
         ],
         column_config={
             "attendance": {"suffix": "%"},
@@ -552,13 +597,38 @@ advanced_dataframe(
                         "growth": 10.2,
                         "profitable": True,
                         "subRows": [
-                            {"region": "California", "revenue": 150000, "growth": 15.0, "profitable": True},
-                            {"region": "New York", "revenue": 120000, "growth": 8.5, "profitable": True},
-                            {"region": "Texas", "revenue": 80000, "growth": 5.0, "profitable": False},
+                            {
+                                "region": "California",
+                                "revenue": 150000,
+                                "growth": 15.0,
+                                "profitable": True,
+                            },
+                            {
+                                "region": "New York",
+                                "revenue": 120000,
+                                "growth": 8.5,
+                                "profitable": True,
+                            },
+                            {
+                                "region": "Texas",
+                                "revenue": 80000,
+                                "growth": 5.0,
+                                "profitable": False,
+                            },
                         ],
                     },
-                    {"region": "Canada", "revenue": 100000, "growth": 18.0, "profitable": True},
-                    {"region": "Mexico", "revenue": 50000, "growth": 22.0, "profitable": False},
+                    {
+                        "region": "Canada",
+                        "revenue": 100000,
+                        "growth": 18.0,
+                        "profitable": True,
+                    },
+                    {
+                        "region": "Mexico",
+                        "revenue": 50000,
+                        "growth": 22.0,
+                        "profitable": False,
+                    },
                 ],
             },
             {
@@ -567,9 +637,24 @@ advanced_dataframe(
                 "growth": 8.0,
                 "profitable": True,
                 "subRows": [
-                    {"region": "UK", "revenue": 150000, "growth": 5.5, "profitable": True},
-                    {"region": "Germany", "revenue": 130000, "growth": 7.0, "profitable": True},
-                    {"region": "France", "revenue": 120000, "growth": 12.0, "profitable": True},
+                    {
+                        "region": "UK",
+                        "revenue": 150000,
+                        "growth": 5.5,
+                        "profitable": True,
+                    },
+                    {
+                        "region": "Germany",
+                        "revenue": 130000,
+                        "growth": 7.0,
+                        "profitable": True,
+                    },
+                    {
+                        "region": "France",
+                        "revenue": 120000,
+                        "growth": 12.0,
+                        "profitable": True,
+                    },
                 ],
             },
             {
@@ -578,9 +663,24 @@ advanced_dataframe(
                 "growth": 25.0,
                 "profitable": True,
                 "subRows": [
-                    {"region": "Japan", "revenue": 120000, "growth": 3.0, "profitable": True},
-                    {"region": "China", "revenue": 100000, "growth": 35.0, "profitable": True},
-                    {"region": "Australia", "revenue": 80000, "growth": 15.0, "profitable": True},
+                    {
+                        "region": "Japan",
+                        "revenue": 120000,
+                        "growth": 3.0,
+                        "profitable": True,
+                    },
+                    {
+                        "region": "China",
+                        "revenue": 100000,
+                        "growth": 35.0,
+                        "profitable": True,
+                    },
+                    {
+                        "region": "Australia",
+                        "revenue": 80000,
+                        "growth": 15.0,
+                        "profitable": True,
+                    },
                 ],
             },
         ]
@@ -588,7 +688,7 @@ advanced_dataframe(
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 # Data structure with subRows
 df = pd.DataFrame([
     {
@@ -609,7 +709,7 @@ selected = advanced_dataframe(
     selection_mode="single-row",
     key="expandable_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -661,7 +761,7 @@ selected = advanced_dataframe(
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 # Summary row enabled (default)
 advanced_dataframe(
     data=df,
@@ -675,7 +775,7 @@ advanced_dataframe(
     show_summary=False,
     key="summary_off",
 )
-''',
+""",
             language="python",
         )
 
@@ -736,14 +836,16 @@ advanced_dataframe(
             "status": [random.choice(statuses) for _ in range(10000)],
             "priority": [random.choice(priorities) for _ in range(10000)],
             "response_time": [random.randint(1, 72) for _ in range(10000)],
-            "satisfaction": [round(random.uniform(1.0, 5.0), 1) for _ in range(10000)],
+            "satisfaction": [
+                round(random.uniform(1.0, 5.0), 1) for _ in range(10000)
+            ],
             "resolved": [random.choice([True, False]) for _ in range(10000)],
         }
     )
 
     with st.expander("View Code", expanded=False):
         st.code(
-            '''
+            """
 # 10,000 rows - virtual scrolling is automatic
 advanced_dataframe(
     data=df_large,  # 10,000 rows
@@ -753,7 +855,7 @@ advanced_dataframe(
     show_row_count=True,
     key="large_demo",
 )
-''',
+""",
             language="python",
         )
 
@@ -763,7 +865,14 @@ advanced_dataframe(
         data=df_large,
         height=500,
         use_container_width=True,
-        filterable_columns=["title", "status", "priority", "response_time", "satisfaction", "resolved"],
+        filterable_columns=[
+            "title",
+            "status",
+            "priority",
+            "response_time",
+            "satisfaction",
+            "resolved",
+        ],
         show_row_count=True,
         column_config={
             "response_time": {"suffix": "h"},
